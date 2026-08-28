@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Grenada",
+    "airport": "GND",
+    "estimated_flight_ttd": 1100,
+    "daily_cost_ttd": 450,
+    "beach_score": 9,
+    "nightlife_score": 6
+  },
+  {
+    "name": "Barbados",
+    "airport": "BGI",
+    "estimated_flight_ttd": 1400,
+    "daily_cost_ttd": 550,
+    "beach_score": 9,
+    "nightlife_score": 9
+  },
+  {
+    "name": "Saint Lucia",
+    "airport": "UVF",
+    "estimated_flight_ttd": 1600,
+    "daily_cost_ttd": 600,
+    "beach_score": 10,
+    "nightlife_score": 5
+  },
+  {
+    "name": "Guyana",
+    "airport": "GEO",
+    "estimated_flight_ttd": 1200,
+    "daily_cost_ttd": 400,
+    "beach_score": 3,
+    "nightlife_score": 7
+  }
+]

@@ -6,38 +6,23 @@ The WeyWeGoing Score.
 The score is deterministic Python arithmetic. The LLM does not create
 or change it.
 
-Current heuristic weights:
-- budget_fit: 25%
-- preference_match: 40%
-- route_convenience: 20%
+Current V1 ranking:
+- preference_match: 60%
+- route_convenience: 25%
 - weather_fit: 15%
 
-These are prototype product assumptions, not scientifically proven
-weights. They can later be validated with user research and evaluation.
+Budget is NOT scored right now because destinations.json no longer
+contains made-up trip prices. Budget scoring will return when WeyWeGoing?
+is connected to a real flight/accommodation pricing source.
+
+These weights are prototype heuristics and can be changed later.
 """
 
 WEIGHTS = {
-    "budget_fit": 0.25,
-    "preference_match": 0.40,
-    "route_convenience": 0.20,
+    "preference_match": 0.60,
+    "route_convenience": 0.25,
     "weather_fit": 0.15,
 }
-
-
-def score_budget_fit(total_cost, budget):
-    """Returns a 0-100 score for how well the trip fits the budget."""
-    if budget <= 0:
-        return 0
-
-    ratio = total_cost / budget
-
-    if ratio > 1.0:
-        return 0
-
-    if ratio >= 0.7:
-        return 100 - ((ratio - 0.7) / 0.3) * 20
-
-    return 80 * (ratio / 0.7)
 
 
 def score_preference_match(
@@ -79,22 +64,26 @@ def score_preference_match(
 
 
 def score_route_convenience(route_type):
-    """Direct routes score higher than one-stop routes."""
+    """
+    Scores route convenience.
+
+    'unknown' is neutral because routes.json is still incomplete.
+    """
     if route_type == "direct":
         return 100
 
     if route_type == "one_stop":
         return 70
 
-    return 0
+    return 50
 
 
 def score_weather_fit(weather):
     """
     Scores real forecast weather using chance of rain.
 
-    If no usable forecast exists for the user's travel date, return a
-    neutral score so weather does not unfairly help or hurt the trip.
+    If no usable forecast exists for the user's exact travel date,
+    return a neutral score.
     """
     if weather is None:
         return 60
@@ -122,19 +111,12 @@ def score_weather_fit(weather):
 
 
 def calculate_weywegoing_score(
-    total_cost,
-    budget,
     destination_scores,
     user_preferences,
     route_type,
     weather=None
 ):
-    """Combines all current score components into one final score."""
-    budget_component = score_budget_fit(
-        total_cost,
-        budget
-    )
-
+    """Combines the current score components into one final score."""
     preference_component = score_preference_match(
         destination_scores,
         user_preferences
@@ -149,18 +131,16 @@ def calculate_weywegoing_score(
     )
 
     final_score = (
-        budget_component * WEIGHTS["budget_fit"]
-        + preference_component * WEIGHTS["preference_match"]
-        + route_component * WEIGHTS["route_convenience"]
-        + weather_component * WEIGHTS["weather_fit"]
+        preference_component
+        * WEIGHTS["preference_match"]
+        + route_component
+        * WEIGHTS["route_convenience"]
+        + weather_component
+        * WEIGHTS["weather_fit"]
     )
 
     return {
         "final_score": round(final_score, 1),
-        "budget_fit": round(
-            budget_component,
-            1
-        ),
         "preference_match": round(
             preference_component,
             1

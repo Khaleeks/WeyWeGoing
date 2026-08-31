@@ -1,151 +1,11 @@
 [
   {
-    "name": "Grenada",
-    "country_code": "GD",
-    "airport": "GND",
-    "currency": "XCD",
-    "estimated_flight_ttd": 1100,
-    "costs": {
-      "accommodation_per_night_ttd": 450,
-      "food_per_day_ttd": 250,
-      "transport_per_day_ttd": 100,
-      "activities_per_day_ttd": 150
-    },
-    "scores": {
-      "beach": 9,
-      "nightlife": 6,
-      "food": 8,
-      "culture": 8,
-      "nature": 10,
-      "romantic": 9,
-      "adventure": 8,
-      "relaxation": 9
-    },
-    "recommended_trip_length": {
-      "minimum_days": 3,
-      "ideal_days": 5
-    }
-  },
-  {
-    "name": "Barbados",
-    "country_code": "BB",
-    "airport": "BGI",
-    "currency": "BBD",
-    "estimated_flight_ttd": 1400,
-    "costs": {
-      "accommodation_per_night_ttd": 500,
-      "food_per_day_ttd": 275,
-      "transport_per_day_ttd": 110,
-      "activities_per_day_ttd": 175
-    },
-    "scores": {
-      "beach": 9,
-      "nightlife": 9,
-      "food": 9,
-      "culture": 8,
-      "nature": 7,
-      "romantic": 8,
-      "adventure": 7,
-      "relaxation": 8
-    },
-    "recommended_trip_length": {
-      "minimum_days": 3,
-      "ideal_days": 4
-    }
-  },
-  {
-    "name": "Saint Lucia",
-    "country_code": "LC",
-    "airport": "SLU",
-    "currency": "XCD",
-    "estimated_flight_ttd": 1600,
-    "costs": {
-      "accommodation_per_night_ttd": 550,
-      "food_per_day_ttd": 275,
-      "transport_per_day_ttd": 130,
-      "activities_per_day_ttd": 200
-    },
-    "scores": {
-      "beach": 10,
-      "nightlife": 5,
-      "food": 8,
-      "culture": 8,
-      "nature": 10,
-      "romantic": 10,
-      "adventure": 9,
-      "relaxation": 9
-    },
-    "recommended_trip_length": {
-      "minimum_days": 3,
-      "ideal_days": 5
-    }
-  },
-  {
-    "name": "Guyana",
-    "country_code": "GY",
-    "airport": "GEO",
-    "currency": "GYD",
-    "estimated_flight_ttd": 1200,
-    "costs": {
-      "accommodation_per_night_ttd": 350,
-      "food_per_day_ttd": 200,
-      "transport_per_day_ttd": 90,
-      "activities_per_day_ttd": 120
-    },
-    "scores": {
-      "beach": 3,
-      "nightlife": 7,
-      "food": 9,
-      "culture": 9,
-      "nature": 10,
-      "romantic": 6,
-      "adventure": 10,
-      "relaxation": 6
-    },
-    "recommended_trip_length": {
-      "minimum_days": 3,
-      "ideal_days": 5
-    }
-  },
-  {
-    "name": "Dominica",
-    "country_code": "DM",
-    "airport": "DOM",
-    "currency": "XCD",
-    "estimated_flight_ttd": 1800,
-    "costs": {
-      "accommodation_per_night_ttd": 400,
-      "food_per_day_ttd": 220,
-      "transport_per_day_ttd": 120,
-      "activities_per_day_ttd": 180
-    },
-    "scores": {
-      "beach": 6,
-      "nightlife": 3,
-      "food": 7,
-      "culture": 8,
-      "nature": 10,
-      "romantic": 8,
-      "adventure": 10,
-      "relaxation": 9
-    },
-    "recommended_trip_length": {
-      "minimum_days": 4,
-      "ideal_days": 6
-    }
-  },
-  {
-    "name": "Antigua",
+    "name": "Antigua and Barbuda",
+    "country": "Antigua and Barbuda",
     "country_code": "AG",
     "airport": "ANU",
     "currency": "XCD",
-    "estimated_flight_ttd": 1900,
-    "costs": {
-      "accommodation_per_night_ttd": 550,
-      "food_per_day_ttd": 280,
-      "transport_per_day_ttd": 125,
-      "activities_per_day_ttd": 180
-    },
+    "region_type": "Independent Nation",
     "scores": {
       "beach": 10,
       "nightlife": 6,
@@ -155,24 +15,141 @@
       "romantic": 9,
       "adventure": 7,
       "relaxation": 10
-    },
-    "recommended_trip_length": {
-      "minimum_days": 3,
-      "ideal_days": 5
+    }
+  },
+  {
+    "name": "The Bahamas",
+    "country": "The Bahamas",
+    "country_code": "BS",
+    "airport": "NAS",
+    "currency": "BSD",
+    "region_type": "Independent Nation",
+    "scores": {
+      "beach": 10,
+      "nightlife": 8,
+      "food": 8,
+      "culture": 7,
+      "nature": 8,
+      "romantic": 9,
+      "adventure": 8,
+      "relaxation": 10
+    }
+  },
+  {
+    "name": "Barbados",
+    "country": "Barbados",
+    "country_code": "BB",
+    "airport": "BGI",
+    "currency": "BBD",
+    "region_type": "Independent Nation",
+    "scores": {
+      "beach": 9,
+      "nightlife": 9,
+      "food": 9,
+      "culture": 8,
+      "nature": 7,
+      "romantic": 8,
+      "adventure": 7,
+      "relaxation": 8
+    }
+  },
+  {
+    "name": "Cuba",
+    "country": "Cuba",
+    "country_code": "CU",
+    "airport": "HAV",
+    "currency": "CUP",
+    "region_type": "Independent Nation",
+    "scores": {
+      "beach": 9,
+      "nightlife": 8,
+      "food": 8,
+      "culture": 10,
+      "nature": 8,
+      "romantic": 8,
+      "adventure": 8,
+      "relaxation": 8
+    }
+  },
+  {
+    "name": "Dominica",
+    "country": "Dominica",
+    "country_code": "DM",
+    "airport": "DOM",
+    "currency": "XCD",
+    "region_type": "Independent Nation",
+    "scores": {
+      "beach": 6,
+      "nightlife": 3,
+      "food": 7,
+      "culture": 8,
+      "nature": 10,
+      "romantic": 8,
+      "adventure": 10,
+      "relaxation": 8
+    }
+  },
+  {
+    "name": "Dominican Republic",
+    "country": "Dominican Republic",
+    "country_code": "DO",
+    "airport": "SDQ",
+    "currency": "DOP",
+    "region_type": "Independent Nation",
+    "scores": {
+      "beach": 10,
+      "nightlife": 9,
+      "food": 9,
+      "culture": 9,
+      "nature": 8,
+      "romantic": 8,
+      "adventure": 9,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Grenada",
+    "country": "Grenada",
+    "country_code": "GD",
+    "airport": "GND",
+    "currency": "XCD",
+    "region_type": "Independent Nation",
+    "scores": {
+      "beach": 9,
+      "nightlife": 6,
+      "food": 8,
+      "culture": 8,
+      "nature": 10,
+      "romantic": 9,
+      "adventure": 8,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Haiti",
+    "country": "Haiti",
+    "country_code": "HT",
+    "airport": "PAP",
+    "currency": "HTG",
+    "region_type": "Independent Nation",
+    "scores": {
+      "beach": 7,
+      "nightlife": 6,
+      "food": 8,
+      "culture": 10,
+      "nature": 8,
+      "romantic": 6,
+      "adventure": 8,
+      "relaxation": 6
     }
   },
   {
     "name": "Jamaica",
+    "country": "Jamaica",
     "country_code": "JM",
     "airport": "KIN",
     "currency": "JMD",
-    "estimated_flight_ttd": 2200,
-    "costs": {
-      "accommodation_per_night_ttd": 500,
-      "food_per_day_ttd": 250,
-      "transport_per_day_ttd": 130,
-      "activities_per_day_ttd": 190
-    },
+    "region_type": "Independent Nation",
     "scores": {
       "beach": 9,
       "nightlife": 10,
@@ -182,37 +159,402 @@
       "romantic": 8,
       "adventure": 9,
       "relaxation": 8
-    },
-    "recommended_trip_length": {
-      "minimum_days": 4,
-      "ideal_days": 6
     }
   },
   {
-    "name": "Tobago",
-    "country_code": "TT",
-    "airport": "TAB",
-    "currency": "TTD",
-    "estimated_flight_ttd": 450,
-    "costs": {
-      "accommodation_per_night_ttd": 350,
-      "food_per_day_ttd": 200,
-      "transport_per_day_ttd": 90,
-      "activities_per_day_ttd": 130
-    },
+    "name": "Saint Kitts and Nevis",
+    "country": "Saint Kitts and Nevis",
+    "country_code": "KN",
+    "airport": "SKB",
+    "currency": "XCD",
+    "region_type": "Independent Nation",
+    "scores": {
+      "beach": 9,
+      "nightlife": 6,
+      "food": 8,
+      "culture": 8,
+      "nature": 9,
+      "romantic": 9,
+      "adventure": 8,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Saint Lucia",
+    "country": "Saint Lucia",
+    "country_code": "LC",
+    "airport": "SLU",
+    "currency": "XCD",
+    "region_type": "Independent Nation",
     "scores": {
       "beach": 10,
       "nightlife": 5,
       "food": 8,
       "culture": 8,
       "nature": 10,
-      "romantic": 8,
+      "romantic": 10,
+      "adventure": 9,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Saint Vincent and the Grenadines",
+    "country": "Saint Vincent and the Grenadines",
+    "country_code": "VC",
+    "airport": "SVD",
+    "currency": "XCD",
+    "region_type": "Independent Nation",
+    "scores": {
+      "beach": 10,
+      "nightlife": 4,
+      "food": 7,
+      "culture": 8,
+      "nature": 10,
+      "romantic": 9,
+      "adventure": 9,
+      "relaxation": 10
+    }
+  },
+  {
+    "name": "Trinidad",
+    "country": "Trinidad and Tobago",
+    "country_code": "TT",
+    "airport": "POS",
+    "currency": "TTD",
+    "region_type": "Independent Nation",
+    "scores": {
+      "beach": 6,
+      "nightlife": 9,
+      "food": 10,
+      "culture": 10,
+      "nature": 8,
+      "romantic": 6,
+      "adventure": 8,
+      "relaxation": 6
+    }
+  },
+  {
+    "name": "Tobago",
+    "country": "Trinidad and Tobago",
+    "country_code": "TT",
+    "airport": "TAB",
+    "currency": "TTD",
+    "region_type": "Independent Nation",
+    "scores": {
+      "beach": 10,
+      "nightlife": 5,
+      "food": 8,
+      "culture": 8,
+      "nature": 10,
+      "romantic": 9,
       "adventure": 8,
       "relaxation": 10
-    },
-    "recommended_trip_length": {
-      "minimum_days": 2,
-      "ideal_days": 4
+    }
+  },
+  {
+    "name": "Anguilla",
+    "country": "Anguilla",
+    "country_code": "AI",
+    "airport": "AXA",
+    "currency": "XCD",
+    "region_type": "British Overseas Territory",
+    "scores": {
+      "beach": 10,
+      "nightlife": 5,
+      "food": 9,
+      "culture": 7,
+      "nature": 7,
+      "romantic": 10,
+      "adventure": 6,
+      "relaxation": 10
+    }
+  },
+  {
+    "name": "British Virgin Islands",
+    "country": "British Virgin Islands",
+    "country_code": "VG",
+    "airport": "EIS",
+    "currency": "USD",
+    "region_type": "British Overseas Territory",
+    "scores": {
+      "beach": 10,
+      "nightlife": 6,
+      "food": 8,
+      "culture": 7,
+      "nature": 9,
+      "romantic": 10,
+      "adventure": 9,
+      "relaxation": 10
+    }
+  },
+  {
+    "name": "Cayman Islands",
+    "country": "Cayman Islands",
+    "country_code": "KY",
+    "airport": "GCM",
+    "currency": "KYD",
+    "region_type": "British Overseas Territory",
+    "scores": {
+      "beach": 10,
+      "nightlife": 7,
+      "food": 9,
+      "culture": 7,
+      "nature": 8,
+      "romantic": 9,
+      "adventure": 9,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Montserrat",
+    "country": "Montserrat",
+    "country_code": "MS",
+    "airport": "MNI",
+    "currency": "XCD",
+    "region_type": "British Overseas Territory",
+    "scores": {
+      "beach": 6,
+      "nightlife": 2,
+      "food": 7,
+      "culture": 8,
+      "nature": 10,
+      "romantic": 7,
+      "adventure": 9,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Turks and Caicos Islands",
+    "country": "Turks and Caicos Islands",
+    "country_code": "TC",
+    "airport": "PLS",
+    "currency": "USD",
+    "region_type": "British Overseas Territory",
+    "scores": {
+      "beach": 10,
+      "nightlife": 6,
+      "food": 8,
+      "culture": 6,
+      "nature": 8,
+      "romantic": 10,
+      "adventure": 8,
+      "relaxation": 10
+    }
+  },
+  {
+    "name": "Guadeloupe",
+    "country": "Guadeloupe",
+    "country_code": "GP",
+    "airport": "PTP",
+    "currency": "EUR",
+    "region_type": "French Overseas Department/Region",
+    "scores": {
+      "beach": 9,
+      "nightlife": 6,
+      "food": 9,
+      "culture": 9,
+      "nature": 10,
+      "romantic": 9,
+      "adventure": 9,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Martinique",
+    "country": "Martinique",
+    "country_code": "MQ",
+    "airport": "FDF",
+    "currency": "EUR",
+    "region_type": "French Overseas Department/Region",
+    "scores": {
+      "beach": 9,
+      "nightlife": 7,
+      "food": 10,
+      "culture": 9,
+      "nature": 9,
+      "romantic": 9,
+      "adventure": 8,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Saint Barthelemy",
+    "country": "Saint Barthelemy",
+    "country_code": "BL",
+    "airport": "SBH",
+    "currency": "EUR",
+    "region_type": "French Overseas Collectivity",
+    "scores": {
+      "beach": 10,
+      "nightlife": 8,
+      "food": 10,
+      "culture": 7,
+      "nature": 7,
+      "romantic": 10,
+      "adventure": 7,
+      "relaxation": 10
+    }
+  },
+  {
+    "name": "Saint Martin",
+    "country": "Saint Martin",
+    "country_code": "MF",
+    "airport": "SFG",
+    "currency": "EUR",
+    "region_type": "French Overseas Collectivity",
+    "scores": {
+      "beach": 10,
+      "nightlife": 8,
+      "food": 10,
+      "culture": 8,
+      "nature": 8,
+      "romantic": 9,
+      "adventure": 8,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Aruba",
+    "country": "Aruba",
+    "country_code": "AW",
+    "airport": "AUA",
+    "currency": "AWG",
+    "region_type": "Constituent Country of the Kingdom of the Netherlands",
+    "scores": {
+      "beach": 10,
+      "nightlife": 9,
+      "food": 9,
+      "culture": 8,
+      "nature": 7,
+      "romantic": 9,
+      "adventure": 8,
+      "relaxation": 10
+    }
+  },
+  {
+    "name": "Curacao",
+    "country": "Curacao",
+    "country_code": "CW",
+    "airport": "CUR",
+    "currency": "XCG",
+    "region_type": "Constituent Country of the Kingdom of the Netherlands",
+    "scores": {
+      "beach": 9,
+      "nightlife": 8,
+      "food": 9,
+      "culture": 9,
+      "nature": 8,
+      "romantic": 9,
+      "adventure": 9,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Sint Maarten",
+    "country": "Sint Maarten",
+    "country_code": "SX",
+    "airport": "SXM",
+    "currency": "XCG",
+    "region_type": "Constituent Country of the Kingdom of the Netherlands",
+    "scores": {
+      "beach": 10,
+      "nightlife": 10,
+      "food": 9,
+      "culture": 8,
+      "nature": 7,
+      "romantic": 9,
+      "adventure": 8,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Bonaire",
+    "country": "Caribbean Netherlands",
+    "country_code": "BQ",
+    "airport": "BON",
+    "currency": "USD",
+    "region_type": "Special Municipality of the Netherlands",
+    "scores": {
+      "beach": 8,
+      "nightlife": 4,
+      "food": 8,
+      "culture": 7,
+      "nature": 10,
+      "romantic": 8,
+      "adventure": 10,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Sint Eustatius",
+    "country": "Caribbean Netherlands",
+    "country_code": "BQ",
+    "airport": "EUX",
+    "currency": "USD",
+    "region_type": "Special Municipality of the Netherlands",
+    "scores": {
+      "beach": 6,
+      "nightlife": 2,
+      "food": 7,
+      "culture": 8,
+      "nature": 10,
+      "romantic": 8,
+      "adventure": 9,
+      "relaxation": 10
+    }
+  },
+  {
+    "name": "Saba",
+    "country": "Caribbean Netherlands",
+    "country_code": "BQ",
+    "airport": "SAB",
+    "currency": "USD",
+    "region_type": "Special Municipality of the Netherlands",
+    "scores": {
+      "beach": 3,
+      "nightlife": 2,
+      "food": 7,
+      "culture": 7,
+      "nature": 10,
+      "romantic": 8,
+      "adventure": 10,
+      "relaxation": 9
+    }
+  },
+  {
+    "name": "Puerto Rico",
+    "country": "Puerto Rico",
+    "country_code": "PR",
+    "airport": "SJU",
+    "currency": "USD",
+    "region_type": "United States Territory",
+    "scores": {
+      "beach": 9,
+      "nightlife": 10,
+      "food": 10,
+      "culture": 10,
+      "nature": 9,
+      "romantic": 8,
+      "adventure": 9,
+      "relaxation": 8
+    }
+  },
+  {
+    "name": "U.S. Virgin Islands",
+    "country": "U.S. Virgin Islands",
+    "country_code": "VI",
+    "airport": "STT",
+    "currency": "USD",
+    "region_type": "United States Territory",
+    "scores": {
+      "beach": 10,
+      "nightlife": 7,
+      "food": 8,
+      "culture": 8,
+      "nature": 9,
+      "romantic": 9,
+      "adventure": 9,
+      "relaxation": 10
     }
   }
 ]

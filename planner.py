@@ -3,17 +3,23 @@ planner.py
 
 The recommendation engine.
 
-A destination must:
-1. fit the user's budget
-2. be reachable from the user's origin
-3. match the user's interests
+destinations.json now contains only:
+- destination identity
+- country / territory information
+- airport
+- currency
+- temporary preference scores
 
-If the user supplies an exact travel date and that date is inside
-WeatherAPI's available forecast window, real weather also affects the
-score.
+It no longer contains made-up flight, hotel, food, transport, or
+activity prices.
 
-Currency does not affect the numerical score. The remaining TTD buffer
-is converted into the destination's local currency for useful context.
+Until a real pricing API is connected, budget is accepted as user
+context but does NOT affect ranking.
+
+Current ranking uses:
+1. destination preference match
+2. route convenience when known
+3. real WeatherAPI forecast when an exact near-term date is supplied
 """
 
 import json
@@ -43,59 +49,13 @@ def load_currency(path=CURRENCY_PATH):
     return load_json(path)
 
 
-def calculate_trip_cost(destination, days):
-    """Returns an itemized estimated trip cost in TTD."""
-    costs = destination["costs"]
-    nights = max(days - 1, 0)
-
-    accommodation = (
-        costs["accommodation_per_night_ttd"]
-        * nights
-    )
-
-    food = (
-        costs["food_per_day_ttd"]
-        * days
-    )
-
-    transport = (
-        costs["transport_per_day_ttd"]
-        * days
-    )
-
-    activities = (
-        costs["activities_per_day_ttd"]
-        * days
-    )
-
-    flight = destination[
-        "estimated_flight_ttd"
-    ]
-
-    total = (
-        flight
-        + accommodation
-        + food
-        + transport
-        + activities
-    )
-
-    return {
-        "flight": flight,
-        "accommodation": accommodation,
-        "food": food,
-        "transport": transport,
-        "activities": activities,
-        "total": total,
-    }
-
-
 def find_route(origin, destination, routes):
     """
     Finds a direct route first, then a simple one-stop route.
 
-    Returns None when the destination is not reachable in the seeded
-    route data.
+    If no route exists in the CURRENT SEEDED route dataset, the route is
+    marked unknown rather than the destination being removed. This is
+    important because routes.json does not yet cover the whole Caribbean.
     """
     direct_routes = [
         route
@@ -117,9 +77,7 @@ def find_route(origin, destination, routes):
     ]
 
     for first_leg in first_legs:
-        connection = first_leg[
-            "destination"
-        ]
+        connection = first_leg["destination"]
 
         second_legs = [
             route
@@ -138,50 +96,32 @@ def find_route(origin, destination, routes):
                 ],
             }
 
-    return None
-
-
-def convert_ttd_to_local(
-    amount_ttd,
-    currency_code,
-    currency_data
-):
-    """Converts TTD into a destination's local currency."""
-    rates_to_ttd = currency_data[
-        "rates_to_ttd"
-    ]
-
-    if currency_code not in rates_to_ttd:
-        return None
-
-    return round(
-        amount_ttd
-        / rates_to_ttd[currency_code],
-        2
-    )
+    return {
+        "route_type": "unknown",
+        "legs": [],
+    }
 
 
 def recommend_destinations(
-    budget,
     days,
     preferences=None,
     origin="POS",
     travel_date=None,
+    budget=None,
     max_results=3
 ):
     """
-    Returns ranked destination recommendations.
+    Returns ranked Caribbean destination recommendations.
+
+    budget is accepted so the agent can keep the user's stated budget in
+    the request, but it is not evaluated until real pricing data is added.
 
     travel_date should be YYYY-MM-DD when supplied.
-
-    WeatherAPI's free plan provides a 3-day forecast. If travel_date is
-    not inside that forecast window, weather remains neutral.
     """
     preferences = preferences or {}
 
     destinations = load_destinations()
     routes = load_routes()
-    currency_data = load_currency()
 
     results = []
 
@@ -195,19 +135,6 @@ def recommend_destinations(
             routes
         )
 
-        if route is None:
-            continue
-
-        cost_breakdown = calculate_trip_cost(
-            destination,
-            days
-        )
-
-        total_cost = cost_breakdown["total"]
-
-        if total_cost > budget:
-            continue
-
         weather = None
 
         if travel_date:
@@ -217,47 +144,32 @@ def recommend_destinations(
                     travel_date
                 )
             except Exception:
-                # Weather should not make the whole recommendation fail.
-                # If the API is unavailable, use the neutral weather score.
+                # Weather failure should not make recommendations fail.
                 weather = None
 
         score_breakdown = calculate_weywegoing_score(
-            total_cost=total_cost,
-            budget=budget,
             destination_scores=destination["scores"],
             user_preferences=preferences,
             route_type=route["route_type"],
             weather=weather,
         )
 
-        buffer_remaining = (
-            budget - total_cost
-        )
-
-        local_buffer = convert_ttd_to_local(
-            buffer_remaining,
-            destination["currency"],
-            currency_data
-        )
-
         results.append({
             "name": destination["name"],
+            "country": destination["country"],
+            "country_code": destination["country_code"],
+            "region_type": destination["region_type"],
             "airport": destination["airport"],
             "currency": destination["currency"],
-            "cost_breakdown": cost_breakdown,
             "score_breakdown": score_breakdown,
             "route": route,
             "weather": weather,
             "travel_date": travel_date,
-            "buffer_remaining": buffer_remaining,
-            "buffer_local_currency": local_buffer,
         })
 
     results.sort(
         key=lambda result: (
-            result["score_breakdown"][
-                "final_score"
-            ]
+            result["score_breakdown"]["final_score"]
         ),
         reverse=True
     )

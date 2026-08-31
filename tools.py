@@ -3,8 +3,10 @@ tools.py
 
 Defines the tools WeyWeGoing?'s LLM can choose to call.
 
-Weather now comes from WeatherAPI.com instead of data/weather.json.
-Route, currency, and destination data are still seeded for now.
+Weather comes from WeatherAPI.com.
+
+destinations.json is the Caribbean destination catalog.
+Route and currency data are still seeded demo data for now.
 """
 
 from planner import (
@@ -18,7 +20,7 @@ from weather_service import get_forecast
 
 
 def _normalize_place(place):
-    """Turns common place names into airport codes."""
+    """Turns common place names into airport codes when known."""
     aliases = {
         "trinidad": "POS",
         "trinidad and tobago": "POS",
@@ -46,6 +48,67 @@ def _normalize_place(place):
         "jamaica": "KIN",
         "kingston": "KIN",
         "kin": "KIN",
+        "bahamas": "NAS",
+        "the bahamas": "NAS",
+        "nassau": "NAS",
+        "nas": "NAS",
+        "cuba": "HAV",
+        "havana": "HAV",
+        "hav": "HAV",
+        "dominican republic": "SDQ",
+        "santo domingo": "SDQ",
+        "sdq": "SDQ",
+        "haiti": "PAP",
+        "port-au-prince": "PAP",
+        "pap": "PAP",
+        "saint kitts and nevis": "SKB",
+        "st kitts and nevis": "SKB",
+        "skb": "SKB",
+        "saint vincent and the grenadines": "SVD",
+        "st vincent and the grenadines": "SVD",
+        "svd": "SVD",
+        "anguilla": "AXA",
+        "axa": "AXA",
+        "british virgin islands": "EIS",
+        "eis": "EIS",
+        "cayman islands": "GCM",
+        "gcm": "GCM",
+        "montserrat": "MNI",
+        "mni": "MNI",
+        "turks and caicos islands": "PLS",
+        "turks and caicos": "PLS",
+        "pls": "PLS",
+        "guadeloupe": "PTP",
+        "ptp": "PTP",
+        "martinique": "FDF",
+        "fdf": "FDF",
+        "saint barthelemy": "SBH",
+        "st barthelemy": "SBH",
+        "st barths": "SBH",
+        "sbh": "SBH",
+        "saint martin": "SFG",
+        "st martin": "SFG",
+        "sfg": "SFG",
+        "aruba": "AUA",
+        "aua": "AUA",
+        "curacao": "CUR",
+        "curaçao": "CUR",
+        "cur": "CUR",
+        "sint maarten": "SXM",
+        "sxm": "SXM",
+        "bonaire": "BON",
+        "bon": "BON",
+        "sint eustatius": "EUX",
+        "eux": "EUX",
+        "saba": "SAB",
+        "sab": "SAB",
+        "puerto rico": "SJU",
+        "san juan": "SJU",
+        "sju": "SJU",
+        "u.s. virgin islands": "STT",
+        "us virgin islands": "STT",
+        "united states virgin islands": "STT",
+        "stt": "STT",
     }
 
     cleaned = place.strip().lower()
@@ -57,23 +120,26 @@ def _normalize_place(place):
 
 
 def recommend_destinations_tool(
-    budget,
     days,
     preferences=None,
     origin="POS",
-    travel_date=None
+    travel_date=None,
+    budget=None
 ):
-    """Returns ranked destination recommendations."""
-    origin_code = _normalize_place(
-        origin
-    )
+    """
+    Returns ranked Caribbean destination recommendations.
+
+    Budget is currently stored as context only because real trip pricing
+    has not been connected yet.
+    """
+    origin_code = _normalize_place(origin)
 
     results = _recommend_destinations(
-        budget=budget,
         days=days,
         preferences=preferences or {},
         origin=origin_code,
         travel_date=travel_date,
+        budget=budget,
     )
 
     if not results:
@@ -85,19 +151,26 @@ def recommend_destinations_tool(
     return {
         "status": "ok",
         "origin": origin_code,
+        "days": days,
+        "budget": budget,
+        "budget_evaluated": False,
         "travel_date": travel_date,
         "results": results
     }
 
 
 def get_destination_details_tool(name):
-    """Looks up one destination in destinations.json."""
+    """Looks up one supported Caribbean destination."""
     destinations = load_destinations()
+
+    cleaned_name = name.strip().lower()
 
     for destination in destinations:
         if (
             destination["name"].lower()
-            == name.lower()
+            == cleaned_name
+            or destination["country"].lower()
+            == cleaned_name
         ):
             return {
                 "status": "ok",
@@ -108,7 +181,7 @@ def get_destination_details_tool(name):
         "status": "not_found",
         "message": (
             f"No destination named '{name}' "
-            "in the current dataset."
+            "in the current Caribbean catalog."
         ),
         "available_destinations": [
             destination["name"]
@@ -118,16 +191,11 @@ def get_destination_details_tool(name):
 
 
 def check_route_tool(origin, destination):
-    """Checks seeded route data between two Caribbean places."""
+    """Checks the current seeded route dataset."""
     routes = load_routes()
 
-    origin_code = _normalize_place(
-        origin
-    )
-
-    destination_code = _normalize_place(
-        destination
-    )
+    origin_code = _normalize_place(origin)
+    destination_code = _normalize_place(destination)
 
     route = find_route(
         origin_code,
@@ -135,13 +203,15 @@ def check_route_tool(origin, destination):
         routes
     )
 
-    if route is None:
+    if route["route_type"] == "unknown":
         return {
-            "status": "not_found",
+            "status": "unknown",
+            "origin": origin_code,
+            "destination": destination_code,
+            "route_type": "unknown",
             "message": (
-                "No direct or one-stop seeded route "
-                f"found from {origin_code} "
-                f"to {destination_code}."
+                "This route is not covered by the current "
+                "seeded route dataset yet."
             ),
         }
 
@@ -155,36 +225,14 @@ def check_route_tool(origin, destination):
 
 def get_weather_tool(destination, days=3):
     """
-    Gets the real near-term forecast from WeatherAPI.com.
+    Gets real near-term weather directly from WeatherAPI.com.
 
-    The destination is matched against destinations.json so the tool can
-    reuse the airport code already stored for that destination.
+    Weather is not restricted to destinations.json at the API level, but
+    WeyWeGoing? is designed around the Caribbean catalog.
     """
-    destinations = load_destinations()
-
-    destination_data = None
-
-    for item in destinations:
-        if (
-            item["name"].lower()
-            == destination.lower()
-        ):
-            destination_data = item
-            break
-
-    if destination_data is None:
-        return {
-            "status": "not_found",
-            "message": (
-                f"No destination named "
-                f"'{destination}' "
-                "in the current dataset."
-            ),
-        }
-
     try:
         weather_data = get_forecast(
-            destination_data["airport"],
+            destination,
             days
         )
 
@@ -196,8 +244,7 @@ def get_weather_tool(destination, days=3):
 
     return {
         "status": "ok",
-        "destination": destination_data["name"],
-        "airport": destination_data["airport"],
+        "destination": destination,
         "data_type": "live_forecast",
         "location": weather_data["location"],
         "forecast": weather_data["forecast"],
@@ -209,12 +256,9 @@ def convert_currency_tool(
     from_currency,
     to_currency
 ):
-    """Converts money using seeded demo exchange rates."""
+    """Converts money using the current seeded demo exchange rates."""
     currency_data = load_currency()
-
-    rates_to_ttd = currency_data[
-        "rates_to_ttd"
-    ]
+    rates_to_ttd = currency_data["rates_to_ttd"]
 
     from_code = from_currency.upper()
     to_code = to_currency.upper()
@@ -223,8 +267,8 @@ def convert_currency_tool(
         return {
             "status": "not_found",
             "message": (
-                f"No seeded rate for "
-                f"{from_code}."
+                f"No seeded rate for {from_code}. "
+                "Currency coverage will expand when a live FX API is added."
             ),
         }
 
@@ -232,19 +276,17 @@ def convert_currency_tool(
         return {
             "status": "not_found",
             "message": (
-                f"No seeded rate for "
-                f"{to_code}."
+                f"No seeded rate for {to_code}. "
+                "Currency coverage will expand when a live FX API is added."
             ),
         }
 
     amount_in_ttd = (
-        amount
-        * rates_to_ttd[from_code]
+        amount * rates_to_ttd[from_code]
     )
 
     converted_amount = (
-        amount_in_ttd
-        / rates_to_ttd[to_code]
+        amount_in_ttd / rates_to_ttd[to_code]
     )
 
     return {
@@ -275,26 +317,24 @@ TOOL_SCHEMAS = [
         "function": {
             "name": "recommend_destinations",
             "description": (
-                "Recommend Caribbean destinations for a new trip. "
-                "The tool checks budget, preferences and route "
-                "convenience. If an exact travel date is provided "
-                "and falls inside the available forecast window, "
-                "real WeatherAPI forecast data also affects ranking. "
-                "Default origin is Trinidad/POS."
+                "Rank supported Caribbean destinations using user "
+                "preferences, route convenience when known, and real "
+                "near-term weather when an exact date is available. "
+                "Budget may be passed as context but is not evaluated "
+                "until real pricing data is connected."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "budget": {
-                        "type": "integer",
-                        "description": (
-                            "Total trip budget in TTD."
-                        ),
-                    },
                     "days": {
                         "type": "integer",
+                        "description": "Length of trip in days.",
+                    },
+                    "budget": {
+                        "type": "number",
                         "description": (
-                            "Length of trip in days."
+                            "Optional total trip budget in TTD. "
+                            "Currently retained as context only."
                         ),
                     },
                     "origin": {
@@ -307,50 +347,29 @@ TOOL_SCHEMAS = [
                     "travel_date": {
                         "type": "string",
                         "description": (
-                            "Exact trip start date in YYYY-MM-DD "
-                            "format. Only include when the user "
-                            "provides an exact date."
+                            "Exact trip start date in YYYY-MM-DD. "
+                            "Only include when the user gives an exact date."
                         ),
                     },
                     "preferences": {
                         "type": "object",
                         "description": (
-                            "Only include interests the user "
-                            "actually expressed, with weights "
-                            "from 0.0 to 1.0."
+                            "Only include interests the user actually "
+                            "expressed, with weights from 0.0 to 1.0."
                         ),
                         "properties": {
-                            "beach": {
-                                "type": "number"
-                            },
-                            "nightlife": {
-                                "type": "number"
-                            },
-                            "food": {
-                                "type": "number"
-                            },
-                            "culture": {
-                                "type": "number"
-                            },
-                            "nature": {
-                                "type": "number"
-                            },
-                            "romantic": {
-                                "type": "number"
-                            },
-                            "adventure": {
-                                "type": "number"
-                            },
-                            "relaxation": {
-                                "type": "number"
-                            },
+                            "beach": {"type": "number"},
+                            "nightlife": {"type": "number"},
+                            "food": {"type": "number"},
+                            "culture": {"type": "number"},
+                            "nature": {"type": "number"},
+                            "romantic": {"type": "number"},
+                            "adventure": {"type": "number"},
+                            "relaxation": {"type": "number"},
                         },
                     },
                 },
-                "required": [
-                    "budget",
-                    "days"
-                ],
+                "required": ["days"],
             },
         },
     },
@@ -359,17 +378,15 @@ TOOL_SCHEMAS = [
         "function": {
             "name": "get_destination_details",
             "description": (
-                "Get stored details for one "
-                "specific Caribbean destination."
+                "Get the stored metadata and preference scores for one "
+                "supported Caribbean destination."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": (
-                            "Destination name."
-                        ),
+                        "description": "Destination name.",
                     },
                 },
                 "required": ["name"],
@@ -381,24 +398,19 @@ TOOL_SCHEMAS = [
         "function": {
             "name": "check_route",
             "description": (
-                "Check whether a direct or one-stop "
-                "route exists between two places in "
-                "the seeded route data."
+                "Check whether the current seeded route dataset contains "
+                "a direct or one-stop route between two Caribbean places."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "origin": {
                         "type": "string",
-                        "description": (
-                            "Origin place or airport code."
-                        ),
+                        "description": "Origin place or airport code.",
                     },
                     "destination": {
                         "type": "string",
-                        "description": (
-                            "Destination place or airport code."
-                        ),
+                        "description": "Destination place or airport code.",
                     },
                 },
                 "required": [
@@ -413,32 +425,24 @@ TOOL_SCHEMAS = [
         "function": {
             "name": "get_weather",
             "description": (
-                "Get the real near-term weather forecast "
-                "for a Caribbean destination using WeatherAPI.com. "
-                "The free project integration supports up to 3 days."
+                "Get the real near-term weather forecast for a Caribbean "
+                "location using WeatherAPI.com."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "destination": {
                         "type": "string",
-                        "description": (
-                            "Caribbean destination name."
-                        ),
+                        "description": "Caribbean destination or city name.",
                     },
                     "days": {
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 3,
-                        "description": (
-                            "Number of forecast days, "
-                            "from 1 to 3."
-                        ),
+                        "description": "Number of forecast days, 1 to 3.",
                     },
                 },
-                "required": [
-                    "destination"
-                ],
+                "required": ["destination"],
             },
         },
     },
@@ -447,29 +451,22 @@ TOOL_SCHEMAS = [
         "function": {
             "name": "convert_currency",
             "description": (
-                "Convert money between supported "
-                "currencies using seeded demo rates."
+                "Convert money using the current seeded currency rates."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "amount": {
                         "type": "number",
-                        "description": (
-                            "Amount to convert."
-                        ),
+                        "description": "Amount to convert.",
                     },
                     "from_currency": {
                         "type": "string",
-                        "description": (
-                            "Source currency code."
-                        ),
+                        "description": "Source currency code.",
                     },
                     "to_currency": {
                         "type": "string",
-                        "description": (
-                            "Target currency code."
-                        ),
+                        "description": "Target currency code.",
                     },
                 },
                 "required": [

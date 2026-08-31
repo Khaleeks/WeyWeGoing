@@ -2,7 +2,7 @@ from agent import run_agent
 
 
 def print_route(route):
-    """Prints the route used for a recommendation."""
+    """Prints route information used in ranking."""
     if route["route_type"] == "direct":
         leg = route["legs"][0]
 
@@ -13,7 +13,7 @@ def print_route(route):
             "(direct)"
         )
 
-    else:
+    elif route["route_type"] == "one_stop":
         legs = route["legs"]
 
         print(
@@ -23,9 +23,14 @@ def print_route(route):
             f"{legs[1]['destination']}"
         )
 
+    else:
+        print(
+            "  🛫 Route          "
+            "not covered by current route data"
+        )
+
 
 def print_recommendation(rank, result):
-    cost = result["cost_breakdown"]
     score = result["score_breakdown"]
 
     medal = (
@@ -40,13 +45,16 @@ def print_recommendation(rank, result):
     )
 
     print(
-        f"WeyWeGoing Score: "
-        f"{score['final_score']} / 100"
+        f"  {result['region_type']}"
     )
 
     print(
-        f"  Budget fit:        "
-        f"{score['budget_fit']}"
+        f"  Currency: {result['currency']}"
+    )
+
+    print(
+        f"\nWeyWeGoing Score: "
+        f"{score['final_score']} / 100"
     )
 
     print(
@@ -64,9 +72,7 @@ def print_recommendation(rank, result):
         f"{score['weather_fit']}"
     )
 
-    print_route(
-        result["route"]
-    )
+    print_route(result["route"])
 
     if result["weather"]:
         weather = result["weather"]
@@ -81,64 +87,13 @@ def print_recommendation(rank, result):
     elif result["travel_date"]:
         print(
             "  ☀ Weather         "
-            "date outside available forecast "
-            "or weather unavailable"
+            "forecast unavailable for that date"
         )
 
     else:
         print(
             "  ☀ Weather         "
             "not included (no exact date provided)"
-        )
-
-    print(
-        f"\n  ✈ Flight         "
-        f"TT${cost['flight']}"
-    )
-
-    print(
-        f"  🏨 Accommodation "
-        f"TT${cost['accommodation']}"
-    )
-
-    print(
-        f"  🍛 Food           "
-        f"TT${cost['food']}"
-    )
-
-    print(
-        f"  🚕 Transport      "
-        f"TT${cost['transport']}"
-    )
-
-    print(
-        f"  🎉 Activities     "
-        f"TT${cost['activities']}"
-    )
-
-    print(
-        "  ─────────────────────────"
-    )
-
-    print(
-        f"  Estimated Total  "
-        f"TT${cost['total']}"
-    )
-
-    print(
-        f"  Remaining buffer "
-        f"TT${result['buffer_remaining']}"
-    )
-
-    local_buffer = (
-        result["buffer_local_currency"]
-    )
-
-    if local_buffer is not None:
-        print(
-            f"  Local buffer      "
-            f"{local_buffer} "
-            f"{result['currency']}"
         )
 
 
@@ -149,22 +104,26 @@ def print_destination_details(destination):
     )
 
     print(
-        f"  Local currency: "
+        f"  Country/area: "
+        f"{destination['country']}"
+    )
+
+    print(
+        f"  Region type: "
+        f"{destination['region_type']}"
+    )
+
+    print(
+        f"  Country code: "
+        f"{destination['country_code']}"
+    )
+
+    print(
+        f"  Currency: "
         f"{destination['currency']}"
     )
 
-    print(
-        f"  Estimated flight: "
-        f"TT${destination['estimated_flight_ttd']}"
-    )
-
-    print(
-        f"  Ideal trip length: "
-        f"{destination['recommended_trip_length']['ideal_days']} "
-        "days"
-    )
-
-    print("  Scores (0-10):")
+    print("  Preference scores (0-10):")
 
     for category, value in (
         destination["scores"].items()
@@ -190,6 +149,12 @@ def render_tool_trace(tool_calls):
             == "recommend_destinations"
             and result.get("status") == "ok"
         ):
+            if result.get("budget") is not None:
+                print(
+                    "  Budget noted, but not yet evaluated "
+                    "(real pricing API not connected)."
+                )
+
             for index, destination_result in enumerate(
                 result["results"],
                 start=1
@@ -206,8 +171,7 @@ def render_tool_trace(tool_calls):
             == "no_matches"
         ):
             print(
-                "  -> no reachable destinations "
-                "fit that budget/duration"
+                "  -> no destinations found"
             )
 
         elif (
@@ -229,10 +193,7 @@ def render_tool_trace(tool_calls):
                 f"{result['route_type']}"
             )
 
-            if (
-                result["route_type"]
-                == "direct"
-            ):
+            if result["route_type"] == "direct":
                 leg = result["legs"][0]
 
                 print(
@@ -248,8 +209,15 @@ def render_tool_trace(tool_calls):
                 )
 
         elif (
-            call["name"]
-            == "get_weather"
+            call["name"] == "check_route"
+            and result.get("status") == "unknown"
+        ):
+            print(
+                f"  -> {result['message']}"
+            )
+
+        elif (
+            call["name"] == "get_weather"
             and result.get("status") == "ok"
         ):
             print(
@@ -266,8 +234,7 @@ def render_tool_trace(tool_calls):
                 )
 
         elif (
-            call["name"]
-            == "convert_currency"
+            call["name"] == "convert_currency"
             and result.get("status") == "ok"
         ):
             print(
@@ -293,8 +260,8 @@ def main():
     )
 
     print(
-        "Ask about a trip, route, weather, "
-        "currency, or destination."
+        "Ask about a Caribbean trip, route, "
+        "weather, currency, or destination."
     )
 
     print(

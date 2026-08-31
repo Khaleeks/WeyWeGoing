@@ -2,27 +2,33 @@
 
 An AI travel intelligence agent for Caribbean trip planning.
 
-Describe your trip in plain language — budget, time, interests, routes,
-weather, or currency — and WeyWeGoing? decides which tools it needs to
-answer you.
+WeyWeGoing? uses a tool-calling LLM for conversation, while plain Python
+handles travel data, trip costs, route checking, currency conversion, and
+the WeyWeGoing Score.
 
-> "I have TT$3500 and a long weekend. Somewhere with beach and nightlife."
+## Recommendation ranking
 
-## Current tools
+The recommendation engine now considers:
 
-The Groq LLM can choose between:
+- 25% budget fit
+- 40% destination preference match
+- 20% route convenience
+- 15% weather fit
 
-- `recommend_destinations`
-- `get_destination_details`
-- `check_route`
-- `get_weather`
-- `convert_currency`
+Weather affects the score only when the user provides a travel month.
+If no month is supplied, weather receives a neutral score.
 
-The LLM chooses the tool. Plain Python runs the tool and reads the data.
+A destination that has no direct or one-stop route in the seeded route
+dataset is not recommended.
 
-## Current data
+Currency does not receive a score. All trip costs are already normalized
+to TTD, so adding a currency score would be arbitrary. Instead, WeyWeGoing?
+converts the traveler's remaining TTD budget into the destination's local
+currency to make the recommendation more useful.
 
-This version uses **seeded demo data**, not live travel information:
+## Data
+
+All current data is SEEDED DEMO DATA:
 
 ```text
 data/
@@ -32,88 +38,61 @@ data/
   currency.json
 ```
 
-The fake data is intentional for prototyping the architecture. The next
-major milestone is replacing each seeded source with a real API while
-keeping the same tool interface.
+It is intended to test the architecture and will later be replaced with
+live APIs or verified sources.
 
-For example:
+## Tools
 
-```text
-get_weather
-    today -> weather.json
-    later -> live weather API
-```
+- `recommend_destinations`
+- `get_destination_details`
+- `check_route`
+- `get_weather`
+- `convert_currency`
 
-The agent still calls the same tool.
-
-## Architecture
+## Example
 
 ```text
-User
-  ↓
-agent.py
-  ↓
-LLM chooses tool
-  ↓
-tools.py
-  ├── recommend_destinations -> planner.py -> destinations.json
-  ├── get_destination_details -> destinations.json
-  ├── check_route -> routes.json
-  ├── get_weather -> weather.json
-  └── convert_currency -> currency.json
+> I have TT$4000 and 3 days in February.
+> I want beaches and nightlife.
 ```
 
-`scoring.py` remains deterministic. The LLM does not create the
-WeyWeGoing Score.
+The recommendation tool now:
+
+1. loads possible destinations
+2. checks whether each destination is reachable from POS
+3. filters destinations over budget
+4. loads February weather
+5. scores budget + interests + route + weather
+6. converts the remaining TTD buffer into local currency
+7. returns the top 3
 
 ## Quickstart
 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env
 python main.py
 ```
 
-Add your Groq API key to `.env`:
+`.env`:
 
 ```text
 GROQ_API_KEY=your_key_here
 ```
 
-## Good test prompts
-
-```text
-I have TT$3500 and 3 days. I want beaches and nightlife.
-
-Tell me more about Grenada.
-
-Can I get from Trinidad to Dominica?
-
-What is the weather usually like in Barbados in February?
-
-Convert 1000 TTD to BBD.
-```
-
-## Important limitation
-
-All destination costs, route information, weather patterns, and exchange
-rates in this version are seeded demo values. They are shaped like the
-real data the product will eventually use, but they should not be treated
-as current travel information.
-
-## Next steps
+## Roadmap
 
 - [x] Tool-calling agent
-- [x] Seeded destination data
-- [x] Seeded route data + route tool
-- [x] Seeded weather data + weather tool
-- [x] Seeded currency data + currency tool
-- [ ] Make route convenience affect the WeyWeGoing Score
-- [ ] Make weather affect the WeyWeGoing Score
-- [ ] Replace seeded weather with a live weather API
-- [ ] Replace seeded currency with a live FX API
-- [ ] Replace seeded routes/prices with real aviation data
-- [ ] Add eval suite
-- [ ] Add FastAPI backend
-- [ ] Add web frontend
-- [ ] Add Route Radar
+- [x] Destination data
+- [x] Route data + route checking
+- [x] Weather data + weather tool
+- [x] Currency data + currency conversion
+- [x] Route convenience influences recommendation ranking
+- [x] Weather influences recommendation ranking
+- [x] Local-currency spending buffer shown with recommendations
+- [ ] Replace seeded weather with live weather API
+- [ ] Replace seeded currency with live FX API
+- [ ] Replace seeded routes and prices with real aviation data
+- [ ] Add agent evaluation suite
+- [ ] FastAPI backend
+- [ ] Web frontend
+- [ ] Route Radar

@@ -1,6 +1,26 @@
 from agent import run_agent
 
 
+def print_route(route):
+    """Prints the route used for a recommendation."""
+    if route["route_type"] == "direct":
+        leg = route["legs"][0]
+        print(
+            f"  🛫 Route          "
+            f"{leg['origin']} -> {leg['destination']} "
+            f"(direct)"
+        )
+
+    else:
+        legs = route["legs"]
+        print(
+            f"  🛫 Route          "
+            f"{legs[0]['origin']} -> "
+            f"{route['connection']} -> "
+            f"{legs[1]['destination']}"
+        )
+
+
 def print_recommendation(rank, result):
     cost = result["cost_breakdown"]
     score = result["score_breakdown"]
@@ -22,10 +42,41 @@ def print_recommendation(rank, result):
     )
 
     print(
-        f"  (budget fit: {score['budget_fit']} | "
-        f"preference match: "
-        f"{score['preference_match']})"
+        f"  Budget fit:        "
+        f"{score['budget_fit']}"
     )
+
+    print(
+        f"  Preference match:  "
+        f"{score['preference_match']}"
+    )
+
+    print(
+        f"  Route convenience: "
+        f"{score['route_convenience']}"
+    )
+
+    print(
+        f"  Weather fit:       "
+        f"{score['weather_fit']}"
+    )
+
+    print_route(result["route"])
+
+    if result["weather"]:
+        weather = result["weather"]
+
+        print(
+            f"  ☀ Weather         "
+            f"{weather['average_temp_c']}°C, "
+            f"{weather['rain_risk']} rain risk"
+        )
+
+    else:
+        print(
+            "  ☀ Weather         "
+            "not included (no month provided)"
+        )
 
     print(f"\n  ✈ Flight         TT${cost['flight']}")
     print(f"  🏨 Accommodation TT${cost['accommodation']}")
@@ -35,9 +86,16 @@ def print_recommendation(rank, result):
     print("  ─────────────────────────")
     print(f"  Estimated Total  TT${cost['total']}")
     print(
-        f"  Remaining buffer "
-        f"TT${result['buffer_remaining']}"
+        f"  Remaining buffer TT${result['buffer_remaining']}"
     )
+
+    local_buffer = result["buffer_local_currency"]
+
+    if local_buffer is not None:
+        print(
+            f"  Local buffer      "
+            f"{local_buffer} {result['currency']}"
+        )
 
 
 def print_destination_details(destination):
@@ -96,7 +154,7 @@ def render_tool_trace(tool_calls):
             and result.get("status") == "no_matches"
         ):
             print(
-                "  -> no destinations fit "
+                "  -> no reachable destinations fit "
                 "that budget/duration"
             )
 
@@ -118,12 +176,12 @@ def render_tool_trace(tool_calls):
             )
 
             if result["route_type"] == "direct":
-                for route in result["routes"]:
-                    print(
-                        f"  {route['origin']} -> "
-                        f"{route['destination']} "
-                        f"with {route['airline']}"
-                    )
+                leg = result["legs"][0]
+                print(
+                    f"  {leg['origin']} -> "
+                    f"{leg['destination']} "
+                    f"with {leg['airline']}"
+                )
 
             else:
                 print(

@@ -3,21 +3,19 @@ tools.py
 
 Defines the tools WeyWeGoing?'s LLM can choose to call.
 
-The LLM decides WHICH tool it needs. The Python function behind the
-tool then reads the relevant data file and returns structured data.
-
-Current tools:
-- recommend_destinations
-- get_destination_details
-- check_route
-- get_weather
-- convert_currency
+The recommendation tool now uses destination, route, weather, and
+currency data together. The other tools still let the agent answer
+specific follow-up questions.
 """
 
 import json
 
 from planner import (
+    load_currency,
     load_destinations,
+    load_routes,
+    load_weather,
+    find_route,
     recommend_destinations as _recommend_destinations
 )
 
@@ -26,14 +24,8 @@ WEATHER_PATH = "data/weather.json"
 CURRENCY_PATH = "data/currency.json"
 
 
-def _load_json(path):
-    """Loads one JSON data file."""
-    with open(path, "r") as file:
-        return json.load(file)
-
-
 def _normalize_place(place):
-    """Turns common place names into airport codes used by routes.json."""
+    """Turns common place names into airport codes."""
     aliases = {
         "trinidad": "POS",
         "trinidad and tobago": "POS",
@@ -74,13 +66,19 @@ def _normalize_place(place):
 def recommend_destinations_tool(
     budget,
     days,
-    preferences=None
+    preferences=None,
+    origin="POS",
+    month=None
 ):
     """Returns ranked destination recommendations."""
+    origin_code = _normalize_place(origin)
+
     results = _recommend_destinations(
         budget=budget,
         days=days,
         preferences=preferences or {},
+        origin=origin_code,
+        month=month,
     )
 
     if not results:
@@ -91,6 +89,8 @@ def recommend_destinations_tool(
 
     return {
         "status": "ok",
+        "origin": origin_code,
+        "month": month,
         "results": results
     }
 
@@ -120,68 +120,38 @@ def get_destination_details_tool(name):
 
 
 def check_route_tool(origin, destination):
-    """Checks seeded route data between two Caribbean airports."""
-    routes = _load_json(ROUTES_PATH)
+    """Checks seeded route data between two Caribbean places."""
+    routes = load_routes()
 
     origin_code = _normalize_place(origin)
     destination_code = _normalize_place(destination)
 
-    direct_routes = [
-        route
-        for route in routes
-        if route["origin"] == origin_code
-        and route["destination"] == destination_code
-    ]
+    route = find_route(
+        origin_code,
+        destination_code,
+        routes
+    )
 
-    if direct_routes:
+    if route is None:
         return {
-            "status": "ok",
-            "route_type": "direct",
-            "origin": origin_code,
-            "destination": destination_code,
-            "routes": direct_routes,
+            "status": "not_found",
+            "message": (
+                f"No direct or one-stop seeded route found "
+                f"from {origin_code} to {destination_code}."
+            ),
         }
 
-    # Simple one-stop search.
-    first_legs = [
-        route
-        for route in routes
-        if route["origin"] == origin_code
-    ]
-
-    for first_leg in first_legs:
-        connection = first_leg["destination"]
-
-        second_legs = [
-            route
-            for route in routes
-            if route["origin"] == connection
-            and route["destination"] == destination_code
-        ]
-
-        if second_legs:
-            return {
-                "status": "ok",
-                "route_type": "one_stop",
-                "origin": origin_code,
-                "destination": destination_code,
-                "connection": connection,
-                "first_leg": first_leg,
-                "second_leg": second_legs[0],
-            }
-
     return {
-        "status": "not_found",
-        "message": (
-            f"No direct or one-stop seeded route found "
-            f"from {origin_code} to {destination_code}."
-        ),
+        "status": "ok",
+        "origin": origin_code,
+        "destination": destination_code,
+        **route,
     }
 
 
 def get_weather_tool(destination, month):
     """Returns seeded typical weather for a destination and month."""
-    weather_data = _load_json(WEATHER_PATH)
+    weather_data = load_weather()
 
     for destination_weather in weather_data:
         if (
@@ -207,16 +177,11 @@ def get_weather_tool(destination, month):
                     f"No seeded weather data for {destination} "
                     f"in {month}."
                 ),
-                "available_months": list(
-                    destination_weather["months"].keys()
-                ),
             }
 
     return {
         "status": "not_found",
-        "message": (
-            f"No weather data for '{destination}'."
-        ),
+        "message": f"No weather data for '{destination}'.",
     }
 
 
@@ -226,8 +191,7 @@ def convert_currency_tool(
     to_currency
 ):
     """Converts money using seeded demo exchange rates."""
-    currency_data = _load_json(CURRENCY_PATH)
-
+    currency_data = load_currency()
     rates_to_ttd = currency_data["rates_to_ttd"]
 
     from_code = from_currency.upper()
@@ -236,17 +200,13 @@ def convert_currency_tool(
     if from_code not in rates_to_ttd:
         return {
             "status": "not_found",
-            "message": (
-                f"No seeded rate for {from_code}."
-            ),
+            "message": f"No seeded rate for {from_code}.",
         }
 
     if to_code not in rates_to_ttd:
         return {
             "status": "not_found",
-            "message": (
-                f"No seeded rate for {to_code}."
-            ),
+            "message": f"No seeded rate for {to_code}.",
         }
 
     amount_in_ttd = (
@@ -285,23 +245,34 @@ TOOL_SCHEMAS = [
         "function": {
             "name": "recommend_destinations",
             "description": (
-                "Recommend Caribbean destinations for a NEW trip "
-                "request. Use when the user provides a budget and "
-                "trip length and wants to know where to go."
+                "Recommend Caribbean destinations for a NEW trip request. "
+                "This tool checks budget, destination preferences, route "
+                "convenience, and weather when a month is provided. "
+                "Default origin is Trinidad (POS) unless the user says otherwise."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "budget": {
                         "type": "integer",
-                        "description": (
-                            "Total trip budget in TTD."
-                        ),
+                        "description": "Total trip budget in TTD.",
                     },
                     "days": {
                         "type": "integer",
+                        "description": "Length of the trip in days.",
+                    },
+                    "origin": {
+                        "type": "string",
                         "description": (
-                            "Length of the trip in days."
+                            "Starting place or airport code. "
+                            "Use POS for Trinidad by default."
+                        ),
+                    },
+                    "month": {
+                        "type": "string",
+                        "description": (
+                            "Travel month, e.g. February. "
+                            "Only include it if the user gave a month."
                         ),
                     },
                     "preferences": {
@@ -341,9 +312,7 @@ TOOL_SCHEMAS = [
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": (
-                            "Destination name, for example Grenada."
-                        ),
+                        "description": "Destination name.",
                     },
                 },
                 "required": ["name"],
@@ -355,24 +324,19 @@ TOOL_SCHEMAS = [
         "function": {
             "name": "check_route",
             "description": (
-                "Check whether a direct or simple one-stop route "
-                "exists between two places in the seeded route data. "
-                "Use for questions about flights or connections."
+                "Check whether a direct or one-stop route exists "
+                "between two places in the seeded route data."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "origin": {
                         "type": "string",
-                        "description": (
-                            "Origin place or airport code."
-                        ),
+                        "description": "Origin place or airport code.",
                     },
                     "destination": {
                         "type": "string",
-                        "description": (
-                            "Destination place or airport code."
-                        ),
+                        "description": "Destination place or airport code.",
                     },
                 },
                 "required": [
@@ -387,24 +351,19 @@ TOOL_SCHEMAS = [
         "function": {
             "name": "get_weather",
             "description": (
-                "Get SEEDED TYPICAL weather for a Caribbean "
-                "destination in a specific month. This is not a "
-                "live forecast."
+                "Get SEEDED TYPICAL weather for a destination "
+                "in a specific month. This is not a live forecast."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "destination": {
                         "type": "string",
-                        "description": (
-                            "Destination name."
-                        ),
+                        "description": "Destination name.",
                     },
                     "month": {
                         "type": "string",
-                        "description": (
-                            "Month name, for example October."
-                        ),
+                        "description": "Month name.",
                     },
                 },
                 "required": [
@@ -419,29 +378,23 @@ TOOL_SCHEMAS = [
         "function": {
             "name": "convert_currency",
             "description": (
-                "Convert an amount between supported Caribbean "
-                "currencies using SEEDED DEMO exchange rates."
+                "Convert money between supported currencies using "
+                "SEEDED DEMO exchange rates."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "amount": {
                         "type": "number",
-                        "description": (
-                            "Amount of money to convert."
-                        ),
+                        "description": "Amount to convert.",
                     },
                     "from_currency": {
                         "type": "string",
-                        "description": (
-                            "Three-letter source currency code."
-                        ),
+                        "description": "Source currency code.",
                     },
                     "to_currency": {
                         "type": "string",
-                        "description": (
-                            "Three-letter target currency code."
-                        ),
+                        "description": "Target currency code.",
                     },
                 },
                 "required": [

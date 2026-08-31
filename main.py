@@ -5,14 +5,17 @@ def print_route(route):
     """Prints the route used for a recommendation."""
     if route["route_type"] == "direct":
         leg = route["legs"][0]
+
         print(
             f"  🛫 Route          "
-            f"{leg['origin']} -> {leg['destination']} "
-            f"(direct)"
+            f"{leg['origin']} -> "
+            f"{leg['destination']} "
+            "(direct)"
         )
 
     else:
         legs = route["legs"]
+
         print(
             f"  🛫 Route          "
             f"{legs[0]['origin']} -> "
@@ -61,40 +64,81 @@ def print_recommendation(rank, result):
         f"{score['weather_fit']}"
     )
 
-    print_route(result["route"])
+    print_route(
+        result["route"]
+    )
 
     if result["weather"]:
         weather = result["weather"]
 
         print(
             f"  ☀ Weather         "
-            f"{weather['average_temp_c']}°C, "
-            f"{weather['rain_risk']} rain risk"
+            f"{weather['condition']}, "
+            f"{weather['average_temp_c']}°C avg, "
+            f"{weather['rain_probability']}% rain"
+        )
+
+    elif result["travel_date"]:
+        print(
+            "  ☀ Weather         "
+            "date outside available forecast "
+            "or weather unavailable"
         )
 
     else:
         print(
             "  ☀ Weather         "
-            "not included (no month provided)"
+            "not included (no exact date provided)"
         )
 
-    print(f"\n  ✈ Flight         TT${cost['flight']}")
-    print(f"  🏨 Accommodation TT${cost['accommodation']}")
-    print(f"  🍛 Food           TT${cost['food']}")
-    print(f"  🚕 Transport      TT${cost['transport']}")
-    print(f"  🎉 Activities     TT${cost['activities']}")
-    print("  ─────────────────────────")
-    print(f"  Estimated Total  TT${cost['total']}")
     print(
-        f"  Remaining buffer TT${result['buffer_remaining']}"
+        f"\n  ✈ Flight         "
+        f"TT${cost['flight']}"
     )
 
-    local_buffer = result["buffer_local_currency"]
+    print(
+        f"  🏨 Accommodation "
+        f"TT${cost['accommodation']}"
+    )
+
+    print(
+        f"  🍛 Food           "
+        f"TT${cost['food']}"
+    )
+
+    print(
+        f"  🚕 Transport      "
+        f"TT${cost['transport']}"
+    )
+
+    print(
+        f"  🎉 Activities     "
+        f"TT${cost['activities']}"
+    )
+
+    print(
+        "  ─────────────────────────"
+    )
+
+    print(
+        f"  Estimated Total  "
+        f"TT${cost['total']}"
+    )
+
+    print(
+        f"  Remaining buffer "
+        f"TT${result['buffer_remaining']}"
+    )
+
+    local_buffer = (
+        result["buffer_local_currency"]
+    )
 
     if local_buffer is not None:
         print(
             f"  Local buffer      "
-            f"{local_buffer} {result['currency']}"
+            f"{local_buffer} "
+            f"{result['currency']}"
         )
 
 
@@ -117,13 +161,17 @@ def print_destination_details(destination):
     print(
         f"  Ideal trip length: "
         f"{destination['recommended_trip_length']['ideal_days']} "
-        f"days"
+        "days"
     )
 
     print("  Scores (0-10):")
 
-    for category, value in destination["scores"].items():
-        print(f"    {category}: {value}")
+    for category, value in (
+        destination["scores"].items()
+    ):
+        print(
+            f"    {category}: {value}"
+        )
 
 
 def render_tool_trace(tool_calls):
@@ -131,13 +179,15 @@ def render_tool_trace(tool_calls):
     for call in tool_calls:
         print(
             f"\n[tool call: "
-            f"{call['name']}({call['arguments']})]"
+            f"{call['name']}("
+            f"{call['arguments']})]"
         )
 
         result = call["result"]
 
         if (
-            call["name"] == "recommend_destinations"
+            call["name"]
+            == "recommend_destinations"
             and result.get("status") == "ok"
         ):
             for index, destination_result in enumerate(
@@ -150,16 +200,19 @@ def render_tool_trace(tool_calls):
                 )
 
         elif (
-            call["name"] == "recommend_destinations"
-            and result.get("status") == "no_matches"
+            call["name"]
+            == "recommend_destinations"
+            and result.get("status")
+            == "no_matches"
         ):
             print(
-                "  -> no reachable destinations fit "
-                "that budget/duration"
+                "  -> no reachable destinations "
+                "fit that budget/duration"
             )
 
         elif (
-            call["name"] == "get_destination_details"
+            call["name"]
+            == "get_destination_details"
             and result.get("status") == "ok"
         ):
             print_destination_details(
@@ -167,7 +220,8 @@ def render_tool_trace(tool_calls):
             )
 
         elif (
-            call["name"] == "check_route"
+            call["name"]
+            == "check_route"
             and result.get("status") == "ok"
         ):
             print(
@@ -175,8 +229,12 @@ def render_tool_trace(tool_calls):
                 f"{result['route_type']}"
             )
 
-            if result["route_type"] == "direct":
+            if (
+                result["route_type"]
+                == "direct"
+            ):
                 leg = result["legs"][0]
+
                 print(
                     f"  {leg['origin']} -> "
                     f"{leg['destination']} "
@@ -190,28 +248,26 @@ def render_tool_trace(tool_calls):
                 )
 
         elif (
-            call["name"] == "get_weather"
+            call["name"]
+            == "get_weather"
             and result.get("status") == "ok"
         ):
-            weather = result["weather"]
-
             print(
-                f"  Typical temperature: "
-                f"{weather['average_temp_c']}°C"
+                f"  Live forecast for "
+                f"{result['destination']}:"
             )
 
-            print(
-                f"  Rain risk: "
-                f"{weather['rain_risk']}"
-            )
-
-            print(
-                f"  Beach suitability: "
-                f"{weather['beach_suitability']}"
-            )
+            for day in result["forecast"]:
+                print(
+                    f"    {day['date']}: "
+                    f"{day['condition']}, "
+                    f"{day['average_temp_c']}°C avg, "
+                    f"{day['rain_probability']}% rain"
+                )
 
         elif (
-            call["name"] == "convert_currency"
+            call["name"]
+            == "convert_currency"
             and result.get("status") == "ok"
         ):
             print(
@@ -232,14 +288,18 @@ def render_tool_trace(tool_calls):
 
 
 def main():
-    print("\nWeyWeGoing? 🌴✈️\n")
+    print(
+        "\nWeyWeGoing? 🌴✈️\n"
+    )
 
     print(
         "Ask about a trip, route, weather, "
         "currency, or destination."
     )
 
-    print("Type 'quit' to exit.\n")
+    print(
+        "Type 'quit' to exit.\n"
+    )
 
     conversation_history = None
 
@@ -257,14 +317,18 @@ def main():
             conversation_history
         )
 
-        conversation_history = outcome["messages"]
+        conversation_history = (
+            outcome["messages"]
+        )
 
         if outcome["tool_calls"]:
             render_tool_trace(
                 outcome["tool_calls"]
             )
 
-        print(f"\n{outcome['reply']}\n")
+        print(
+            f"\n{outcome['reply']}\n"
+        )
 
 
 if __name__ == "__main__":

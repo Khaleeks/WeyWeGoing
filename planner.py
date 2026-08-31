@@ -3,24 +3,26 @@ planner.py
 
 The recommendation engine.
 
-A destination now has to:
+A destination must:
 1. fit the user's budget
 2. be reachable from the user's origin
-3. match their interests
+3. match the user's interests
 
-If a travel month is provided, seeded weather also affects the score.
+If the user supplies an exact travel date and that date is inside
+WeatherAPI's available forecast window, real weather also affects the
+score.
 
-Currency does not affect the numerical score. Instead, the remaining
-TTD spending buffer is converted into the destination's local currency.
+Currency does not affect the numerical score. The remaining TTD buffer
+is converted into the destination's local currency for useful context.
 """
 
 import json
 
 from scoring import calculate_weywegoing_score
+from weather_service import get_weather_for_date
 
 DESTINATIONS_PATH = "data/destinations.json"
 ROUTES_PATH = "data/routes.json"
-WEATHER_PATH = "data/weather.json"
 CURRENCY_PATH = "data/currency.json"
 
 
@@ -37,10 +39,6 @@ def load_routes(path=ROUTES_PATH):
     return load_json(path)
 
 
-def load_weather(path=WEATHER_PATH):
-    return load_json(path)
-
-
 def load_currency(path=CURRENCY_PATH):
     return load_json(path)
 
@@ -51,22 +49,28 @@ def calculate_trip_cost(destination, days):
     nights = max(days - 1, 0)
 
     accommodation = (
-        costs["accommodation_per_night_ttd"] * nights
+        costs["accommodation_per_night_ttd"]
+        * nights
     )
 
     food = (
-        costs["food_per_day_ttd"] * days
+        costs["food_per_day_ttd"]
+        * days
     )
 
     transport = (
-        costs["transport_per_day_ttd"] * days
+        costs["transport_per_day_ttd"]
+        * days
     )
 
     activities = (
-        costs["activities_per_day_ttd"] * days
+        costs["activities_per_day_ttd"]
+        * days
     )
 
-    flight = destination["estimated_flight_ttd"]
+    flight = destination[
+        "estimated_flight_ttd"
+    ]
 
     total = (
         flight
@@ -113,7 +117,9 @@ def find_route(origin, destination, routes):
     ]
 
     for first_leg in first_legs:
-        connection = first_leg["destination"]
+        connection = first_leg[
+            "destination"
+        ]
 
         second_legs = [
             route
@@ -135,32 +141,22 @@ def find_route(origin, destination, routes):
     return None
 
 
-def get_month_weather(destination_name, month, weather_data):
-    """Returns seeded weather for one destination/month."""
-    if not month:
-        return None
-
-    month = month.lower()
-
-    for destination_weather in weather_data:
-        if (
-            destination_weather["destination"].lower()
-            == destination_name.lower()
-        ):
-            return destination_weather["months"].get(month)
-
-    return None
-
-
-def convert_ttd_to_local(amount_ttd, currency_code, currency_data):
+def convert_ttd_to_local(
+    amount_ttd,
+    currency_code,
+    currency_data
+):
     """Converts TTD into a destination's local currency."""
-    rates_to_ttd = currency_data["rates_to_ttd"]
+    rates_to_ttd = currency_data[
+        "rates_to_ttd"
+    ]
 
     if currency_code not in rates_to_ttd:
         return None
 
     return round(
-        amount_ttd / rates_to_ttd[currency_code],
+        amount_ttd
+        / rates_to_ttd[currency_code],
         2
     )
 
@@ -170,27 +166,26 @@ def recommend_destinations(
     days,
     preferences=None,
     origin="POS",
-    month=None,
+    travel_date=None,
     max_results=3
 ):
     """
-    Returns ranked destinations using budget, destination fit, route
-    convenience, and optional weather.
+    Returns ranked destination recommendations.
 
-    origin should be an airport code, e.g. POS.
-    month is optional, e.g. "february".
+    travel_date should be YYYY-MM-DD when supplied.
+
+    WeatherAPI's free plan provides a 3-day forecast. If travel_date is
+    not inside that forecast window, weather remains neutral.
     """
     preferences = preferences or {}
 
     destinations = load_destinations()
     routes = load_routes()
-    weather_data = load_weather()
     currency_data = load_currency()
 
     results = []
 
     for destination in destinations:
-        # Do not recommend the user's starting airport as the destination.
         if destination["airport"] == origin:
             continue
 
@@ -200,7 +195,6 @@ def recommend_destinations(
             routes
         )
 
-        # If we cannot find a route in our dataset, do not recommend it.
         if route is None:
             continue
 
@@ -214,11 +208,18 @@ def recommend_destinations(
         if total_cost > budget:
             continue
 
-        weather = get_month_weather(
-            destination["name"],
-            month,
-            weather_data
-        )
+        weather = None
+
+        if travel_date:
+            try:
+                weather = get_weather_for_date(
+                    destination["airport"],
+                    travel_date
+                )
+            except Exception:
+                # Weather should not make the whole recommendation fail.
+                # If the API is unavailable, use the neutral weather score.
+                weather = None
 
         score_breakdown = calculate_weywegoing_score(
             total_cost=total_cost,
@@ -229,7 +230,9 @@ def recommend_destinations(
             weather=weather,
         )
 
-        buffer_remaining = budget - total_cost
+        buffer_remaining = (
+            budget - total_cost
+        )
 
         local_buffer = convert_ttd_to_local(
             buffer_remaining,
@@ -245,13 +248,17 @@ def recommend_destinations(
             "score_breakdown": score_breakdown,
             "route": route,
             "weather": weather,
-            "weather_month": month.lower() if month else None,
+            "travel_date": travel_date,
             "buffer_remaining": buffer_remaining,
             "buffer_local_currency": local_buffer,
         })
 
     results.sort(
-        key=lambda result: result["score_breakdown"]["final_score"],
+        key=lambda result: (
+            result["score_breakdown"][
+                "final_score"
+            ]
+        ),
         reverse=True
     )
 

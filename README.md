@@ -1,98 +1,182 @@
 # WeyWeGoing? 🌴✈️
 
-An AI travel intelligence agent for Caribbean trip planning.
+An AI-powered Caribbean travel intelligence agent.
 
-WeyWeGoing? uses a tool-calling LLM for conversation, while plain Python
-handles travel data, trip costs, route checking, currency conversion, and
-the WeyWeGoing Score.
+WeyWeGoing? uses an LLM to understand natural-language travel requests
+and choose tools. Python handles deterministic costs, routes, scoring,
+weather data retrieval, and currency conversion.
 
-## Recommendation ranking
-
-The recommendation engine now considers:
-
-- 25% budget fit
-- 40% destination preference match
-- 20% route convenience
-- 15% weather fit
-
-Weather affects the score only when the user provides a travel month.
-If no month is supplied, weather receives a neutral score.
-
-A destination that has no direct or one-stop route in the seeded route
-dataset is not recommended.
-
-Currency does not receive a score. All trip costs are already normalized
-to TTD, so adding a currency score would be arbitrary. Instead, WeyWeGoing?
-converts the traveler's remaining TTD budget into the destination's local
-currency to make the recommendation more useful.
-
-## Data
-
-All current data is SEEDED DEMO DATA:
+## Current architecture
 
 ```text
-data/
-  destinations.json
-  routes.json
-  weather.json
-  currency.json
+User
+  ↓
+Groq LLM agent
+  ↓
+Tools
+  ├── recommend_destinations
+  ├── get_destination_details
+  ├── check_route
+  ├── get_weather
+  └── convert_currency
+  ↓
+Planner + scoring
 ```
 
-It is intended to test the architecture and will later be replaced with
-live APIs or verified sources.
+## Current data sources
 
-## Tools
+### Real
 
-- `recommend_destinations`
-- `get_destination_details`
-- `check_route`
-- `get_weather`
-- `convert_currency`
+- Weather: WeatherAPI.com
 
-## Example
+### Seeded demo data
+
+- `data/destinations.json`
+- `data/routes.json`
+- `data/currency.json`
+
+`data/weather.json` has been removed.
+
+## Weather integration
+
+WeatherAPI.com is called through:
 
 ```text
-> I have TT$4000 and 3 days in February.
-> I want beaches and nightlife.
+weather_service.py
 ```
 
-The recommendation tool now:
+The project reuses the airport codes already stored in
+`destinations.json`.
 
-1. loads possible destinations
-2. checks whether each destination is reachable from POS
-3. filters destinations over budget
-4. loads February weather
-5. scores budget + interests + route + weather
-6. converts the remaining TTD buffer into local currency
-7. returns the top 3
+Example:
 
-## Quickstart
+```text
+Grenada
+  ↓
+GND
+  ↓
+iata:GND
+  ↓
+WeatherAPI.com
+```
+
+No latitude/longitude table is needed.
+
+The free WeatherAPI plan supports a 3-day forecast, so WeyWeGoing?
+currently uses real weather in ranking only when the user provides an
+exact travel date that appears in the returned forecast.
+
+If no exact date is provided, or the date is outside the available
+forecast window, weather receives a neutral score of 60.
+
+## WeyWeGoing Score
+
+Current prototype heuristic weights:
+
+```text
+Budget fit          25%
+Preference match    40%
+Route convenience   20%
+Weather fit         15%
+```
+
+These weights are product assumptions for V1 and should later be
+validated through evaluation and user testing.
+
+### Route score
+
+```text
+Direct route   100
+One stop        70
+No route         0
+```
+
+Destinations without a reachable seeded route are filtered out before
+ranking.
+
+### Weather score
+
+Weather uses real WeatherAPI forecast data.
+
+The current simple heuristic uses chance of rain:
+
+```text
+0-20% rain     100
+21-40%          85
+41-60%          65
+61-80%          45
+81-100%         25
+```
+
+If no usable forecast is available:
+
+```text
+Weather score = 60
+```
+
+## Setup
+
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
-python main.py
 ```
 
-`.env`:
+Create `.env`:
 
 ```text
-GROQ_API_KEY=your_key_here
+GROQ_API_KEY=your_groq_api_key
+WEATHER_API_KEY=your_weatherapi_key
 ```
+
+Run:
+
+```bash
+python3 main.py
+```
+
+## Example weather prompts
+
+```text
+What's the weather in Grenada?
+What's the 3-day forecast for Barbados?
+What's Tobago's weather like right now?
+```
+
+## Example recommendation prompts
+
+Without an exact date:
+
+```text
+I have TT$5000 and 4 days.
+I want nature and adventure.
+```
+
+Weather stays neutral.
+
+With an exact near-term date:
+
+```text
+I have TT$5000 and 3 days starting 2026-09-01.
+I want beaches and nightlife.
+```
+
+If that date appears inside WeatherAPI's available forecast, real weather
+affects the ranking.
 
 ## Roadmap
 
 - [x] Tool-calling agent
-- [x] Destination data
-- [x] Route data + route checking
-- [x] Weather data + weather tool
-- [x] Currency data + currency conversion
-- [x] Route convenience influences recommendation ranking
-- [x] Weather influences recommendation ranking
-- [x] Local-currency spending buffer shown with recommendations
-- [ ] Replace seeded weather with live weather API
-- [ ] Replace seeded currency with live FX API
-- [ ] Replace seeded routes and prices with real aviation data
-- [ ] Add agent evaluation suite
+- [x] Seeded destination profiles
+- [x] Seeded route checking
+- [x] Seeded currency conversion
+- [x] Explainable destination ranking
+- [x] Replace `weather.json` with WeatherAPI.com
+- [ ] Replace `currency.json` with live FX API
+- [ ] Replace `routes.json` with live flight/route data
+- [ ] Replace seeded destination costs with real data
+- [ ] Validate destination preference scores
+- [ ] Add evaluation suite
 - [ ] FastAPI backend
 - [ ] Web frontend
 - [ ] Route Radar

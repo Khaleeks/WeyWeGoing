@@ -3,6 +3,7 @@
     "name": "Grenada",
     "country_code": "GD",
     "airport": "GND",
+    "currency": "XCD",
     "estimated_flight_ttd": 1100,
     "costs": {
       "accommodation_per_night_ttd": 450,
@@ -29,22 +30,23 @@
     "name": "Barbados",
     "country_code": "BB",
     "airport": "BGI",
+    "currency": "BBD",
     "estimated_flight_ttd": 1400,
     "costs": {
-      "accommodation_per_night_ttd": 550,
-      "food_per_day_ttd": 300,
-      "transport_per_day_ttd": 120,
-      "activities_per_day_ttd": 200
+      "accommodation_per_night_ttd": 500,
+      "food_per_day_ttd": 275,
+      "transport_per_day_ttd": 110,
+      "activities_per_day_ttd": 175
     },
     "scores": {
       "beach": 9,
       "nightlife": 9,
-      "food": 8,
-      "culture": 6,
-      "nature": 6,
-      "romantic": 7,
-      "adventure": 6,
-      "relaxation": 7
+      "food": 9,
+      "culture": 8,
+      "nature": 7,
+      "romantic": 8,
+      "adventure": 7,
+      "relaxation": 8
     },
     "recommended_trip_length": {
       "minimum_days": 3,
@@ -54,22 +56,23 @@
   {
     "name": "Saint Lucia",
     "country_code": "LC",
-    "airport": "UVF",
+    "airport": "SLU",
+    "currency": "XCD",
     "estimated_flight_ttd": 1600,
     "costs": {
-      "accommodation_per_night_ttd": 600,
-      "food_per_day_ttd": 280,
-      "transport_per_day_ttd": 150,
-      "activities_per_day_ttd": 220
+      "accommodation_per_night_ttd": 550,
+      "food_per_day_ttd": 275,
+      "transport_per_day_ttd": 130,
+      "activities_per_day_ttd": 200
     },
     "scores": {
       "beach": 10,
       "nightlife": 5,
-      "food": 7,
-      "culture": 6,
-      "nature": 9,
+      "food": 8,
+      "culture": 8,
+      "nature": 10,
       "romantic": 10,
-      "adventure": 7,
+      "adventure": 9,
       "relaxation": 9
     },
     "recommended_trip_length": {
@@ -81,48 +84,23 @@
     "name": "Guyana",
     "country_code": "GY",
     "airport": "GEO",
+    "currency": "GYD",
     "estimated_flight_ttd": 1200,
     "costs": {
       "accommodation_per_night_ttd": 350,
       "food_per_day_ttd": 200,
-      "transport_per_day_ttd": 150,
-      "activities_per_day_ttd": 250
+      "transport_per_day_ttd": 90,
+      "activities_per_day_ttd": 120
     },
     "scores": {
       "beach": 3,
       "nightlife": 7,
-      "food": 8,
+      "food": 9,
       "culture": 9,
       "nature": 10,
-      "romantic": 5,
+      "romantic": 6,
       "adventure": 10,
-      "relaxation": 5
-    },
-    "recommended_trip_length": {
-      "minimum_days": 4,
-      "ideal_days": 6
-    }
-  },
-  {
-    "name": "Antigua",
-    "country_code": "AG",
-    "airport": "ANU",
-    "estimated_flight_ttd": 1500,
-    "costs": {
-      "accommodation_per_night_ttd": 650,
-      "food_per_day_ttd": 280,
-      "transport_per_day_ttd": 130,
-      "activities_per_day_ttd": 200
-    },
-    "scores": {
-      "beach": 10,
-      "nightlife": 6,
-      "food": 6,
-      "culture": 5,
-      "nature": 7,
-      "romantic": 9,
-      "adventure": 6,
-      "relaxation": 9
+      "relaxation": 6
     },
     "recommended_trip_length": {
       "minimum_days": 3,
@@ -133,48 +111,77 @@
     "name": "Dominica",
     "country_code": "DM",
     "airport": "DOM",
-    "estimated_flight_ttd": 1300,
+    "currency": "XCD",
+    "estimated_flight_ttd": 1800,
     "costs": {
       "accommodation_per_night_ttd": 400,
       "food_per_day_ttd": 220,
-      "transport_per_day_ttd": 130,
-      "activities_per_day_ttd": 250
+      "transport_per_day_ttd": 120,
+      "activities_per_day_ttd": 180
     },
     "scores": {
-      "beach": 5,
+      "beach": 6,
       "nightlife": 3,
       "food": 7,
-      "culture": 7,
+      "culture": 8,
       "nature": 10,
-      "romantic": 7,
+      "romantic": 8,
       "adventure": 10,
-      "relaxation": 7
+      "relaxation": 9
     },
     "recommended_trip_length": {
       "minimum_days": 4,
       "ideal_days": 6
+    }
+  },
+  {
+    "name": "Antigua",
+    "country_code": "AG",
+    "airport": "ANU",
+    "currency": "XCD",
+    "estimated_flight_ttd": 1900,
+    "costs": {
+      "accommodation_per_night_ttd": 550,
+      "food_per_day_ttd": 280,
+      "transport_per_day_ttd": 125,
+      "activities_per_day_ttd": 180
+    },
+    "scores": {
+      "beach": 10,
+      "nightlife": 6,
+      "food": 8,
+      "culture": 7,
+      "nature": 8,
+      "romantic": 9,
+      "adventure": 7,
+      "relaxation": 10
+    },
+    "recommended_trip_length": {
+      "minimum_days": 3,
+      "ideal_days": 5
     }
   },
   {
     "name": "Jamaica",
     "country_code": "JM",
     "airport": "KIN",
-    "estimated_flight_ttd": 1450,
+    "currency": "JMD",
+    "estimated_flight_ttd": 2200,
     "costs": {
       "accommodation_per_night_ttd": 500,
-      "food_per_day_ttd": 260,
-      "transport_per_day_ttd": 140,
-      "activities_per_day_ttd": 220
+      "food_per_day_ttd": 250,
+      "transport_per_day_ttd": 130,
+      "activities_per_day_ttd": 190
     },
     "scores": {
       "beach": 9,
-      "nightlife": 9,
-      "food": 9,
+      "nightlife": 10,
+      "food": 10,
       "culture": 10,
-      "nature": 8,
-      "romantic": 7,
-      "adventure": 8,
-      "relaxation": 6
+      "nature": 9,
+      "romantic": 8,
+      "adventure": 9,
+      "relaxation": 8
     },
     "recommended_trip_length": {
       "minimum_days": 4,
@@ -182,29 +189,30 @@
     }
   },
   {
-    "name": "St Vincent",
-    "country_code": "VC",
-    "airport": "SVD",
-    "estimated_flight_ttd": 1250,
+    "name": "Tobago",
+    "country_code": "TT",
+    "airport": "TAB",
+    "currency": "TTD",
+    "estimated_flight_ttd": 450,
     "costs": {
-      "accommodation_per_night_ttd": 400,
-      "food_per_day_ttd": 220,
-      "transport_per_day_ttd": 110,
-      "activities_per_day_ttd": 180
+      "accommodation_per_night_ttd": 350,
+      "food_per_day_ttd": 200,
+      "transport_per_day_ttd": 90,
+      "activities_per_day_ttd": 130
     },
     "scores": {
-      "beach": 8,
-      "nightlife": 4,
-      "food": 7,
-      "culture": 6,
-      "nature": 9,
+      "beach": 10,
+      "nightlife": 5,
+      "food": 8,
+      "culture": 8,
+      "nature": 10,
       "romantic": 8,
       "adventure": 8,
-      "relaxation": 8
+      "relaxation": 10
     },
     "recommended_trip_length": {
-      "minimum_days": 3,
-      "ideal_days": 5
+      "minimum_days": 2,
+      "ideal_days": 4
     }
   }
 ]

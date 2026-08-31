@@ -1,0 +1,82 @@
+[
+  {
+    "origin": "POS",
+    "destination": "TAB",
+    "airline": "Caribbean Airlines",
+    "direct": true,
+    "estimated_duration_minutes": 25,
+    "frequency": "multiple_daily"
+  },
+  {
+    "origin": "POS",
+    "destination": "GND",
+    "airline": "Caribbean Airlines",
+    "direct": true,
+    "estimated_duration_minutes": 45,
+    "frequency": "daily"
+  },
+  {
+    "origin": "POS",
+    "destination": "BGI",
+    "airline": "Caribbean Airlines",
+    "direct": true,
+    "estimated_duration_minutes": 65,
+    "frequency": "daily"
+  },
+  {
+    "origin": "POS",
+    "destination": "GEO",
+    "airline": "Caribbean Airlines",
+    "direct": true,
+    "estimated_duration_minutes": 70,
+    "frequency": "daily"
+  },
+  {
+    "origin": "POS",
+    "destination": "SLU",
+    "airline": "Caribbean Airlines",
+    "direct": true,
+    "estimated_duration_minutes": 65,
+    "frequency": "selected_days"
+  },
+  {
+    "origin": "POS",
+    "destination": "KIN",
+    "airline": "Caribbean Airlines",
+    "direct": true,
+    "estimated_duration_minutes": 145,
+    "frequency": "selected_days"
+  },
+  {
+    "origin": "BGI",
+    "destination": "DOM",
+    "airline": "interCaribbean Airways",
+    "direct": true,
+    "estimated_duration_minutes": 60,
+    "frequency": "selected_days"
+  },
+  {
+    "origin": "BGI",
+    "destination": "ANU",
+    "airline": "interCaribbean Airways",
+    "direct": true,
+    "estimated_duration_minutes": 70,
+    "frequency": "selected_days"
+  },
+  {
+    "origin": "BGI",
+    "destination": "SLU",
+    "airline": "interCaribbean Airways",
+    "direct": true,
+    "estimated_duration_minutes": 45,
+    "frequency": "selected_days"
+  },
+  {
+    "origin": "GND",
+    "destination": "BGI",
+    "airline": "interCaribbean Airways",
+    "direct": true,
+    "estimated_duration_minutes": 55,
+    "frequency": "selected_days"
+  }
+]

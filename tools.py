@@ -10,13 +10,16 @@ Route and currency data are still seeded demo data for now.
 """
 
 from planner import (
-    load_currency,
     load_destinations,
     load_routes,
     find_route,
     recommend_destinations as _recommend_destinations
 )
 from weather_service import get_forecast
+
+from currency_service import (
+    convert_currency
+)
 
 
 def _normalize_place(place):
@@ -256,49 +259,38 @@ def convert_currency_tool(
     from_currency,
     to_currency
 ):
-    """Converts money using the current seeded demo exchange rates."""
-    currency_data = load_currency()
-    rates_to_ttd = currency_data["rates_to_ttd"]
+    """
+    Converts money using live Frankfurter exchange rates.
+    """
 
-    from_code = from_currency.upper()
-    to_code = to_currency.upper()
+    try:
+        result = convert_currency(
+            amount,
+            from_currency,
+            to_currency
+        )
 
-    if from_code not in rates_to_ttd:
+    except Exception as error:
         return {
-            "status": "not_found",
-            "message": (
-                f"No seeded rate for {from_code}. "
-                "Currency coverage will expand when a live FX API is added."
-            ),
+            "status": "error",
+            "message": str(error),
         }
-
-    if to_code not in rates_to_ttd:
-        return {
-            "status": "not_found",
-            "message": (
-                f"No seeded rate for {to_code}. "
-                "Currency coverage will expand when a live FX API is added."
-            ),
-        }
-
-    amount_in_ttd = (
-        amount * rates_to_ttd[from_code]
-    )
-
-    converted_amount = (
-        amount_in_ttd / rates_to_ttd[to_code]
-    )
 
     return {
         "status": "ok",
-        "amount": amount,
-        "from_currency": from_code,
-        "to_currency": to_code,
-        "converted_amount": round(
-            converted_amount,
-            2
+        "amount": result["amount"],
+        "from_currency": (
+            result["from_currency"]
         ),
-        "data_type": "seeded_exchange_rate",
+        "to_currency": (
+            result["to_currency"]
+        ),
+        "rate": result["rate"],
+        "converted_amount": (
+            result["converted_amount"]
+        ),
+        "rate_date": result["date"],
+        "data_type": "live_exchange_rate",
     }
 
 
@@ -451,7 +443,7 @@ TOOL_SCHEMAS = [
         "function": {
             "name": "convert_currency",
             "description": (
-                "Convert money using the current seeded currency rates."
+                "Convert money between currencies using live Frankfurter exchange rates."
             ),
             "parameters": {
                 "type": "object",

@@ -40,7 +40,7 @@ Current data:
   airport codes, currencies, region types, and temporary preference scores.
 - Weather comes from the real WeatherAPI.com API.
 - Route data is still seeded and incomplete.
-- Currency exchange rates are still seeded and incomplete.
+- Currency exchange rates come from the live Frankfurter API.
 - Real flight, hotel, food, transport, and activity pricing is NOT
   connected yet.
 
@@ -49,8 +49,7 @@ Use:
 - get_destination_details for one supported Caribbean destination.
 - check_route for route questions.
 - get_weather for current or near-term Caribbean weather.
-- convert_currency for currency conversions supported by the current
-  seeded currency data.
+- convert_currency for live currency conversions using Frankfurter.
 
 Recommendation rules:
 - Use Trinidad/POS as the default origin unless the user gives another.

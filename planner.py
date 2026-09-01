@@ -29,8 +29,6 @@ from weather_service import get_weather_for_date
 
 DESTINATIONS_PATH = "data/destinations.json"
 ROUTES_PATH = "data/routes.json"
-CURRENCY_PATH = "data/currency.json"
-
 
 def load_json(path):
     with open(path, "r") as file:
@@ -43,11 +41,6 @@ def load_destinations(path=DESTINATIONS_PATH):
 
 def load_routes(path=ROUTES_PATH):
     return load_json(path)
-
-
-def load_currency(path=CURRENCY_PATH):
-    return load_json(path)
-
 
 def find_route(origin, destination, routes):
     """

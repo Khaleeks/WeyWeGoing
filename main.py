@@ -1,4 +1,11 @@
+import config
 from agent import run_agent
+from formatting import (
+    budget_line,
+    flight_headline,
+    missing_info_questions,
+    provider_mode_banner,
+)
 
 
 def print_route(route):
@@ -96,6 +103,13 @@ def print_recommendation(rank, result):
             "not included (no exact date provided)"
         )
 
+    print(f"  ✈ {flight_headline(result.get('flight'))}")
+
+    budget_summary = budget_line(result.get("budget_evaluation"))
+
+    if budget_summary:
+        print(f"  💰 {budget_summary}")
+
 
 def print_destination_details(destination):
     print(
@@ -149,11 +163,11 @@ def render_tool_trace(tool_calls):
             == "recommend_destinations"
             and result.get("status") == "ok"
         ):
-            if result.get("budget") is not None:
-                print(
-                    "  Budget noted, but not yet evaluated "
-                    "(real pricing API not connected)."
-                )
+            print(
+                f"  Trip: {result['days']} day(s), "
+                f"{result['travelers']} traveler(s), from "
+                f"{result['origin']}"
+            )
 
             for index, destination_result in enumerate(
                 result["results"],
@@ -173,6 +187,33 @@ def render_tool_trace(tool_calls):
             print(
                 "  -> no destinations found"
             )
+
+        elif (
+            call["name"]
+            == "recommend_destinations"
+            and result.get("status") == "missing_info"
+        ):
+            print("  -> need more information:")
+
+            for question in missing_info_questions(
+                result["missing_fields"]
+            ):
+                print(f"     - {question}")
+
+        elif (
+            call["name"]
+            == "recommend_destinations"
+            and result.get("status") == "invalid_request"
+        ):
+            print("  -> invalid request:")
+
+            for message in result["errors"]:
+                print(f"     - {message}")
+
+        elif (
+            call["name"] == "get_flight_quote"
+        ):
+            print(f"  {flight_headline(result)}")
 
         elif (
             call["name"]
@@ -259,14 +300,21 @@ def main():
         "\nWeyWeGoing? 🌴✈️\n"
     )
 
+    print("Provider status:")
+    print(provider_mode_banner(config.status_summary()))
+
     print(
-        "Ask about a Caribbean trip, route, "
+        "\nAsk about a Caribbean trip, route, "
         "weather, currency, or destination."
     )
 
     print(
         "Type 'quit' to exit.\n"
     )
+
+    if not config.LLM_CONFIGURED:
+        print(config.GROQ_SETUP_MESSAGE)
+        print()
 
     conversation_history = None
 

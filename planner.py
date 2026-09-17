@@ -3,18 +3,16 @@ planner.py
 
 The recommendation engine.
 
-destinations.json now contains only:
-- destination identity
-- country / territory information
-- airport
-- currency
-- temporary preference scores
+destinations.json contains destination identity, country/territory
+info, airport, currency, and heuristic preference scores - no flight,
+hotel, food, transport, or activity prices.
 
-It no longer contains made-up flight, hotel, food, transport, or
-activity prices.
-
-Until a real pricing API is connected, budget is accepted as user
-context but does NOT affect ranking.
+Ranking here is independent of budget on purpose: preference/route/
+weather fit decides which destinations are worth showing at all, and
+flight cost + budget fit (see tools.py, flight_service.py, budget.py)
+are attached afterward as transparency on top of an already-ranked
+list, not as a ranking factor. That keeps "is this a good match for you"
+separate from "can you afford the flight."
 
 Current ranking uses:
 1. destination preference match

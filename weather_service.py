@@ -7,14 +7,9 @@ This keeps API code out of planner.py and tools.py, so both parts of the
 project can use the same weather function.
 """
 
-import os
-
 import requests
-from dotenv import load_dotenv
 
-load_dotenv()
-
-WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
+import config
 
 BASE_URL = "https://api.weatherapi.com/v1"
 
@@ -26,18 +21,17 @@ def get_forecast(airport_code, days=3):
     The free WeatherAPI plan supports up to 3 forecast days, so this
     project intentionally caps requests at 3 days.
     """
-    if not WEATHER_API_KEY:
-        raise ValueError(
-            "WEATHER_API_KEY is missing. "
-            "Add it to your .env file."
-        )
+    config.require(
+        config.WEATHER_CONFIGURED,
+        config.WEATHER_SETUP_MESSAGE,
+    )
 
     days = max(1, min(int(days), 3))
 
     url = f"{BASE_URL}/forecast.json"
 
     params = {
-        "key": WEATHER_API_KEY,
+        "key": config.WEATHER_API_KEY,
         "q": f"iata:{airport_code}",
         "days": days,
         "aqi": "no",

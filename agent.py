@@ -5,28 +5,31 @@ Runs the WeyWeGoing? tool-calling agent using Groq.
 """
 
 import json
-import os
 
-from dotenv import load_dotenv
 from groq import Groq
 
+import config
 from tools import TOOL_FUNCTIONS, TOOL_SCHEMAS
 
-load_dotenv()
+MODEL = "openai/gpt-oss-120b"
 
-_api_key = os.getenv("GROQ_API_KEY")
+_client = None
 
-if not _api_key:
-    raise ValueError(
-        "GROQ_API_KEY is missing. "
-        "Add it to your .env file."
+
+def _get_client():
+    """Creates the Groq client lazily so a missing key doesn't crash on
+    import - it only fails when the agent is actually asked to run."""
+    global _client
+
+    config.require(
+        config.LLM_CONFIGURED,
+        config.GROQ_SETUP_MESSAGE,
     )
 
-_client = Groq(
-    api_key=_api_key
-)
+    if _client is None:
+        _client = Groq(api_key=config.GROQ_API_KEY)
 
-MODEL = "openai/gpt-oss-120b"
+    return _client
 
 MAX_TOOL_ITERATIONS = 5
 
@@ -39,35 +42,60 @@ Current data:
 - destinations.json contains the supported Caribbean destination catalog,
   airport codes, currencies, region types, and temporary preference scores.
 - Weather comes from the real WeatherAPI.com API.
-- Route data is still seeded and incomplete.
+- Route data (check_route) is still seeded and incomplete - it only
+  covers a handful of legs.
 - Currency exchange rates come from the live Frankfurter API.
-- Real flight, hotel, food, transport, and activity pricing is NOT
-  connected yet.
+- Flight prices come from get_flight_quote / recommend_destinations. They
+  are EITHER a real sandbox quote from Amadeus's TEST environment (sample
+  inventory, not production live pricing) OR, if no flight credentials
+  are configured, a clearly-labeled demo estimate. The tool result's
+  "data_type" field tells you which - always say which kind of price you
+  are showing, never call a demo estimate a real fare, and never call a
+  sandbox quote "live" (it's the test environment, not production).
+- Hotel, food, transport, and activity pricing is NOT connected. If asked
+  about them, say so plainly.
 
-Use:
-- recommend_destinations for destination recommendations.
-- get_destination_details for one supported Caribbean destination.
-- check_route for route questions.
-- get_weather for current or near-term Caribbean weather.
-- convert_currency for live currency conversions using Frankfurter.
+Tools:
+- recommend_destinations: ranks destinations by preference/route/weather
+  fit, and (when travel_date is given) attaches a flight quote and a
+  flights-only budget check to each result.
+- get_flight_quote: a standalone flight price for one specific
+  origin/destination/date, when the user just wants a price.
+- get_destination_details: metadata for one supported destination.
+- check_route: whether the seeded route dataset covers a leg.
+- get_weather: near-term forecast for a Caribbean location.
+- convert_currency: live currency conversion.
 
-Recommendation rules:
-- Use Trinidad/POS as the default origin unless the user gives another.
+Understanding the request:
+- Never invent essential trip details. If recommend_destinations returns
+  status "missing_info", ask the user exactly the listed follow-up
+  question(s) instead of guessing - including where they're departing
+  from (there is no default origin), the trip length or dates, and,
+  whenever they mention a budget, whether it's per person or for the
+  whole group.
+- If the tool returns status "invalid_request", explain the problem in
+  plain language and ask the user to correct it.
 - Only include preferences the user actually expressed.
-- If the user provides a budget, pass it to the recommendation tool, but
-  do not claim the system has checked affordability. Real pricing is not
-  connected yet.
-- If the user gives an exact travel date, pass travel_date as YYYY-MM-DD.
-- Do not invent an exact date from a month such as "February".
+- Only pass travel_date/return_date when the user gave an exact date -
+  never invent one from a vague month like "sometime in February".
+- Ask for the number of travelers if a budget is mentioned and the count
+  isn't clear; otherwise 1 traveler is assumed and you should say so.
 - Unknown route data does not mean a route does not exist; it means the
   current seeded route dataset does not cover it yet.
-- Weather affects ranking only when usable real forecast data is available.
+- Weather affects ranking only when usable real forecast data is
+  available for the exact date.
 
-If the user asks for exact trip prices, flight prices, hotel prices, or a
-budget-fit claim, explain that live pricing has not been connected yet.
+Presenting costs (do this every time a flight quote is shown):
+- State whether the price is a live-labeled sandbox quote or a demo
+  estimate, its currency, and when it was retrieved.
+- If a budget was given, only say whether the FLIGHT portion fits - never
+  claim the whole trip fits a budget from airfare alone. Mention that
+  accommodation, food, local transport, and activities are excluded.
+- Remind the user that prices and availability can change and this
+  quote was refreshed just now, not cached from earlier.
 
-After tool results, explain the result clearly without claiming unsupported
-live data.
+After tool results, explain them clearly without claiming data the system
+doesn't actually have.
 """
 
 
@@ -111,6 +139,16 @@ def run_agent(
     conversation_history=None
 ):
     """Runs the tool-calling conversation loop."""
+    try:
+        client = _get_client()
+    except config.MissingCredentialsError as error:
+        return {
+            "reply": str(error),
+            "tool_calls": [],
+            "messages": conversation_history or [],
+            "error": "missing_credentials",
+        }
+
     if conversation_history:
         messages = list(
             conversation_history
@@ -139,7 +177,7 @@ def run_agent(
         MAX_TOOL_ITERATIONS
     ):
         response = (
-            _client.chat.completions.create(
+            client.chat.completions.create(
                 model=MODEL,
                 messages=messages,
                 tools=TOOL_SCHEMAS,
